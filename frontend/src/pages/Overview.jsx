@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { api, fmt } from '../lib/api.js'
 import { Banner, Card, Info, Stat, Table, useAsync, clearAsyncCache } from '../components/ui.jsx'
 import CoinChart from '../components/CoinChart.jsx'
+import LiveStatus from '../components/LiveStatus.jsx'
 
 const fmtPx = (v) => (v == null ? '—' : `$${v < 1 ? v.toFixed(5) : v < 100 ? v.toFixed(4) : v.toFixed(2)}`)
 
@@ -101,6 +102,8 @@ export default function Overview({ onModel }) {
         </span>
       </div>
 
+      <LiveStatus />
+
       {next && (
         <Banner kind="warn" title={`Next: ${next.label} — ${next.action}`}>{next.why}</Banner>
       )}
@@ -149,11 +152,7 @@ export default function Overview({ onModel }) {
             status strip. */}
         <div className="row" style={{ flexWrap: 'wrap', rowGap: 4 }}>
           <span className="label mut">engine</span>
-          <span className={`pill ${eng?.running ? 'ok' : 'bad'}`}
-                title={eng?.running ? 'Trading.'
-                  : 'You pressed stop. This is remembered: restarts and reboots will not resume trading until you press start.'}>
-            {eng?.running ? 'running' : 'paused by you'}
-          </span>
+          {/* the word is in the LIVE panel above; this row is the detail */}
           <span className="mut mono" style={{ fontSize: 11 }}>{eng?.mode}</span>
           <span className="mut" style={{ fontSize: 11 }}>{eng?.ticks ?? 0} ticks</span>
           <span className="mut mono" style={{ fontSize: 11 }}
@@ -224,12 +223,9 @@ export default function Overview({ onModel }) {
           <button style={{ fontSize: 11 }}
                   title="Run one pass of the loop now. The engine does this every 15 seconds on its own — this is for watching it happen."
                   onClick={() => api.engineTick().then(() => { status.reload(); setup.reload() })}>one tick</button>
-          {eng?.running
-            ? <button className="danger" style={{ fontSize: 11 }}
-                      title="Stop trading. The app stays up and this is remembered across restarts."
-                      onClick={() => api.engineStop().then(status.reload)}>stop trading</button>
-            : <button className="primary" style={{ fontSize: 11 }}
-                      onClick={() => api.engineStart().then(() => { status.reload(); setup.reload() })}>start trading</button>}
+          {/* Start/stop lives in the LIVE panel at the top of this page now. Two
+          identical buttons a few inches apart is not redundancy, it is a
+          question about which one is the real one. */}
         </div>
         {eng?.last_error && <div className="err" style={{ marginTop: 6, fontSize: 11 }}>{eng.last_error}</div>}
       </Card>

@@ -290,6 +290,10 @@ fi
 USE_BUILT_DASHBOARD=""
 if ! frontend_ready && ! pnpm_works && ! npm_works && dashboard_built; then
   USE_BUILT_DASHBOARD=1
+  # Set the port NOW, not at start-up time. The phone URL is printed further
+  # down, before the frontend block runs, so leaving this until then handed a
+  # no-Node user a link to port 5180 where nothing is listening.
+  FRONTEND_PORT="$BACKEND_PORT"; export FRONTEND_PORT
   log "no Node on this Mac — serving the built dashboard from the backend instead"
 fi
 
@@ -308,6 +312,7 @@ if [ -z "$USE_BUILT_DASHBOARD" ] && ! frontend_ready; then
     if dashboard_built; then
       warn "could not install the dev server; using the built dashboard instead"
       USE_BUILT_DASHBOARD=1
+      FRONTEND_PORT="$BACKEND_PORT"; export FRONTEND_PORT
     else
       err "the dashboard cannot start: no Node, and no built copy to fall back on."
       err "The owner of this project should run:  cd frontend && npm run build"
@@ -519,8 +524,8 @@ fi
 if [ -n "$TC_LAN" ]; then
   TOKEN="$(cat "$SCRIPT_DIR/secrets/lan_token.txt" 2>/dev/null || true)"
   echo
-  ok  "phone access is ON"
-  log "  On your phone, on the same wifi, open:"
+  ok  "phone access is ON — nothing to install"
+  log "  On your phone, on the same wifi as this Mac, open:"
   log "      http://${LAN_IP}:${FRONTEND_PORT}/?token=${TOKEN:-<printed-in-the-backend-log-above>}"
   log "  Then use Share -> Add to Home Screen to keep it as an app icon."
   log "  The token is stored by the page, so that link is only typed once."
@@ -544,7 +549,6 @@ start_frontend() {
   fi
 }
 if [ -n "$USE_BUILT_DASHBOARD" ]; then
-  FRONTEND_PORT="$BACKEND_PORT"
   ok "$PROJECT_NAME up — dashboard at http://127.0.0.1:${BACKEND_PORT}"
   log "  (served by the backend; no Node needed on this computer)"
 else

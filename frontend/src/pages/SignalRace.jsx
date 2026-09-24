@@ -1,6 +1,7 @@
 import React from 'react'
 import { api } from '../lib/api.js'
 import { Banner, Card, Table, useAsync } from '../components/ui.jsx'
+import DecisionTree from '../components/DecisionTree.jsx'
 
 /** Every signal that competed for a slot, and the formula that ranked them.
  *
@@ -24,6 +25,7 @@ export default function SignalRace() {
 
   return (
     <>
+      <DecisionTree />
       <h1>Signals</h1>
       <p className="mut" style={{ marginTop: -6 }}>
         Each row is one strategy looking at one moment. It shows every coin that

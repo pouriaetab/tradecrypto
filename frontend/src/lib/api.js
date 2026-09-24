@@ -203,6 +203,7 @@ async function req(path, opts = {}) {
 
 export const api = {
   // first run: demo or live
+  decisionTree: (strategy) => req('/decision-tree' + (strategy ? `?strategy=${strategy}` : '')),
   firstRun: () => req('/first_run'),
   firstRunDemo: () => req('/first_run/demo', { method: 'POST', body: {} }),
   firstRunLive: () => req('/first_run/live', { method: 'POST', body: {} }),

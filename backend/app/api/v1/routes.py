@@ -122,6 +122,16 @@ def safety():
     return ok(_clean({**get_settings().safety_report(), "broker": get_broker().probe()}))
 
 
+@router.get("/decision-tree")
+def decision_tree(mode: str | None = None, strategy: str | None = None):
+    """The whole decision, per strategy, opened all the way up."""
+    from app.core import mode as mode_mod
+    from app.research import decision_tree as dt
+    m = mode or mode_mod.get_mode()
+    names = [strategy] if strategy else None
+    return ok(_clean(dt.live(m, names)))
+
+
 # ── first run: demo or live ──────────────────────────────────────────────────
 #
 # A correct empty dashboard is indistinguishable from a broken one, and that is

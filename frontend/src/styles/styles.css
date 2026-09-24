@@ -737,3 +737,77 @@ th.drop-here { box-shadow: inset 3px 0 0 var(--accent); }
 .fr-foot { margin-top: 20px; font-size: 12.5px; text-align: center; }
 .fr-bar { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 .fr-bar-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* ── decision tree ───────────────────────────────────────────────────────── */
+/* Strategy -> field -> coin -> variables. Every level collapses, because the
+   whole chain expanded at once is unreadable, and the operator's standing note
+   is that walls of detail are worse than none. */
+.dt-tree { margin-top: 6px; }
+.dt-node { border-left: 2px solid var(--border, #2a3140); margin: 4px 0 4px 2px; padding-left: 10px; }
+.dt-node.ok { border-left-color: var(--pos, #3fb950); }
+.dt-node.off { border-left-color: var(--border, #2a3140); }
+.dt-head { display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left;
+           background: none; border: 0; padding: 5px 4px; cursor: pointer; color: inherit; border-radius: 6px; }
+.dt-head:hover { background: var(--surface-2, rgba(255,255,255,.04)); }
+.dt-caret { width: 10px; flex: 0 0 10px; font-size: 10px; opacity: .65; }
+.dt-title { font-weight: 600; font-size: 13px; }
+.dt-count { font-size: 11px; padding: 0 6px; border-radius: 8px;
+            background: var(--surface-2, rgba(255,255,255,.07)); }
+.dt-meta { font-size: 11.5px; }
+.dt-body { padding: 2px 0 8px 16px; }
+.dt-section-label { font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+                    opacity: .65; margin: 10px 0 4px; }
+.dt-expr { font-size: 12px; padding: 5px 8px; border-radius: 6px;
+           background: var(--surface-2, rgba(255,255,255,.05)); display: inline-block; }
+.dt-plain { font-size: 12px; margin-top: 6px; max-width: 70ch; line-height: 1.55; }
+.dt-odds { font-size: 12.5px; padding: 7px 9px; border-radius: 6px;
+           background: var(--surface-2, rgba(255,255,255,.05)); margin-bottom: 4px; }
+.dt-notes { margin: 6px 0 0; padding-left: 18px; font-size: 12px; line-height: 1.6; }
+.dt-vars { width: 100%; border-collapse: collapse; font-size: 12px; }
+.dt-vars th { text-align: left; font-weight: 500; opacity: .6; font-size: 11px;
+              padding: 3px 8px 3px 0; border-bottom: 1px solid var(--border, #2a3140); }
+.dt-vars td { padding: 3px 8px 3px 0; vertical-align: top;
+              border-bottom: 1px solid var(--border-soft, rgba(255,255,255,.05)); }
+.dt-vars th.num, .dt-vars td.num { text-align: right; }
+.dt-role-recorded { opacity: .62; }
+.dt-pill-ranks { background: var(--pos, #3fb950); color: #05140a; }
+.dt-pill-gate { background: var(--warning, #d29922); color: #150f02; }
+.dt-pill-recorded { background: var(--surface-2, rgba(255,255,255,.08)); }
+@media (max-width: 760px) {
+  .dt-vars th:nth-child(4), .dt-vars td:nth-child(4),
+  .dt-vars th:nth-child(6), .dt-vars td:nth-child(6) { display: none; }
+  .dt-body { padding-left: 8px; }
+}
+
+/* ── live status ─────────────────────────────────────────────────────────── */
+/* The engine row already existed and was one line of small grey text among a
+   dozen others. Its author still could not tell at a glance whether the app was
+   trading; a stranger had no chance. This says it once, large. */
+.ls { border-radius: 10px; padding: 12px 14px; margin: 10px 0 14px;
+      border: 1px solid var(--border, #2a3140); display: flex; flex-wrap: wrap;
+      gap: 14px 22px; align-items: center; }
+.ls-on    { border-color: color-mix(in srgb, var(--pos, #3fb950) 55%, transparent);
+            background: color-mix(in srgb, var(--pos, #3fb950) 9%, transparent); }
+.ls-off   { border-color: color-mix(in srgb, var(--warning, #d29922) 50%, transparent);
+            background: color-mix(in srgb, var(--warning, #d29922) 8%, transparent); }
+.ls-stall { border-color: color-mix(in srgb, var(--neg, #f85149) 55%, transparent);
+            background: color-mix(in srgb, var(--neg, #f85149) 9%, transparent); }
+.ls-main { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+.ls-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--pos, #3fb950); }
+.ls-on .ls-dot { animation: ls-pulse 2s ease-in-out infinite; }
+.ls-off .ls-dot { background: var(--warning, #d29922); animation: none; }
+.ls-stall .ls-dot { background: var(--neg, #f85149); animation: none; }
+@keyframes ls-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .ls-on .ls-dot { animation: none; } }
+.ls-word { font-size: 18px; font-weight: 700; letter-spacing: .06em; }
+.ls-on .ls-word { color: var(--pos, #3fb950); }
+.ls-off .ls-word { color: var(--warning, #d29922); }
+.ls-stall .ls-word { color: var(--neg, #f85149); }
+.ls-say { font-size: 12.5px; opacity: .8; }
+.ls-facts { display: flex; flex-wrap: wrap; gap: 4px 20px; flex: 1 1 auto; }
+.ls-fact { min-width: 78px; }
+.ls-k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; opacity: .58; }
+.ls-v { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ls-paper { color: var(--pos, #3fb950); }
+.ls-act { flex: 0 0 auto; }
+@media (max-width: 700px) { .ls-main { flex: 1 0 100%; } .ls-act { flex: 1 0 100%; } }

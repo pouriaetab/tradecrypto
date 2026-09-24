@@ -254,8 +254,19 @@ def _replay(panel, name: str) -> tuple[list[dict], list[dict]]:
                 "ts": ts_bar, "symbol": sig.symbol, "side": "buy",
                 "raw_score": float(getattr(sig, "raw_score", None) or getattr(sig, "score", 0.0) or 0.0),
                 "edge_bps": base * 1e4, "decision": "taken", "reason": None,
-                "features": {"demo": True, "target_frac": round(base, 5),
-                             "stop_frac": round(stop_frac, 5),
+                # The strategy's OWN features, exactly as the live engine
+                # stores them. The first version invented a small dict instead,
+                # so the Signals tree showed six variables nobody recognised and
+                # labelled every one of them "recorded" -- the demo was not
+                # previewing the real decision, it was previewing my summary of
+                # it. `stop_bps` / `target_bps` matter as well: the odds lookup
+                # reads target_bps, and without it every candidate showed no
+                # odds at all.
+                "features": {**dict(getattr(sig, "features", {}) or {}),
+                             "demo": True,
+                             "stop_bps": float(getattr(sig, "stop_bps", 0.0) or 0.0),
+                             "target_bps": float(getattr(sig, "target_bps", 0.0) or 0.0),
+                             "hold_seconds": float(getattr(sig, "hold_seconds", 0.0) or 0.0),
                              "atr_frac": round(atr, 5),
                              "p_reach": round(float(bud["p_reach"]), 3),
                              "p70_hours": float(bud["p70_h"])},

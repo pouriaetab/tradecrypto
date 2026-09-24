@@ -155,25 +155,79 @@ Send a screenshot of that. Or in the web page, click **Sources** then
 
 ---
 
-## Optional — on your phone too
+## On your phone too
 
-Skip this unless you want it. There is no app to install; you open it in your
-phone's browser.
+Two ways. The first needs nothing installed.
 
-1. Open the file `.env` in the `tradecrypto` folder with TextEdit.
-2. Find the line `TC_TUNNEL=0` and change it to `TC_TUNNEL=1`. Save.
-3. Install the one extra piece this needs. In Terminal:
+### Way 1 — at home, on the same wifi (easiest)
+
+1. Open the file `.env` inside the `tradecrypto` folder. Double-click it; if your
+   Mac asks what to open it with, choose **TextEdit**.
+2. Find the line that says `TC_LAN=0` and change the `0` to a `1`, so it reads:
+
+   ```
+   TC_LAN=1
+   ```
+
+3. Save the file and close it.
+4. In Terminal, stop and start the app:
+
+   ```
+   cd ~/tradecrypto && bash run.sh stop && bash run.sh
+   ```
+
+5. Near the end it prints something like:
+
+   ```
+   phone access is ON — nothing to install
+     On your phone, on the same wifi as this Mac, open:
+         http://192.168.1.24:8006/?token=a1b2c3...
+   ```
+
+6. Type that whole address into your phone's browser — **including the
+   `?token=...` part**. You only type it once; the phone remembers it.
+7. In Safari, tap **Share -> Add to Home Screen**. It gets its own icon and
+   opens like an app.
+
+**Needs:** your phone and this Mac on the same wifi, and this Mac awake with the
+app running. The phone is only a window — the program runs on the Mac.
+
+**If the page will not load:** some home wifi, and most hotel and office wifi,
+blocks devices from talking to each other. Nothing in this app can fix that —
+use Way 2.
+
+### Way 2 — anywhere, including cell data
+
+This one needs one extra piece of software, so it is a bit more work.
+
+1. Install Homebrew. Paste this into Terminal and press Enter; it asks for your
+   Mac password and takes a few minutes:
+
+   ```
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+2. Then:
 
    ```
    brew install cloudflared
    ```
 
-   If that says `command not found: brew`, you need Homebrew first — this is
-   the only genuinely technical part of the whole app, so it is fine to stop
-   here and just use it on your computer.
+3. Open `.env` in TextEdit, change `TC_TUNNEL=0` to `TC_TUNNEL=1`, save.
+4. Restart the app:
 
-4. Start the app again. It prints a web address ending in `.trycloudflare.com`.
-   Open that on your phone. It works on cell data, anywhere.
+   ```
+   cd ~/tradecrypto && bash run.sh stop && bash run.sh
+   ```
 
-**One rule:** the folder `secrets/` holds a password file that lets your phone
-in. Never send it to anyone and never put it online.
+5. It prints an address ending in `.trycloudflare.com`. Open that on your phone.
+   It works on cell data, anywhere.
+
+That address survives app restarts. It only changes if you run
+`bash run.sh --tunnel-restart`.
+
+### One rule, either way
+
+The folder `secrets/` holds the password file that lets your phone in. Never
+send it to anyone and never put it online — anyone with that link and token can
+see your dashboard.
