@@ -1,0 +1,29 @@
+{
+  "name": "TradeCrypto",
+  "short_name": "TradeCrypto",
+  "description": "Robinhood crypto desk \u2014 what it traded, what it skipped, and why.",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0B0F14",
+  "theme_color": "#0B0F14",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "_why_no_start_url": "Deliberately absent. With start_url set to '/', iOS launches the installed app at '/' and THROWS AWAY the ?token= that was in the address bar when you tapped Add to Home Screen. A home-screen app on iOS gets its own storage container, so it has never seen the token either, and the first thing it shows is a login prompt. Omitting start_url makes it default to the document URL, so the install captures the token and the app opens straight in."
+}

@@ -1,0 +1,27 @@
+# python
+backend/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+# node
+frontend/node_modules/
+frontend/dist/
+# env & secrets
+.env
+.env.local
+*.token.json
+secrets/
+# data — IGNORE THE WHOLE DIRECTORY, not a list of extensions.
+#
+# 2026-09-24: this used to be `data/*.sqlite` plus a couple of friends, which
+# left data/_ae.tgz, data/_backend_now.tgz, data/_w.tgz and data/vault/ (signed
+# trade records) committable. Every one of those is this desk's own history.
+# An allow-list of what may be committed is the only safe shape here, because
+# the next thing written into data/ will not be on any deny-list.
+data/*
+!data/.gitkeep
+!data/README.txt
+logs/
+# os
+.DS_Store

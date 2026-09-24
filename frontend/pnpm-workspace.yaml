@@ -1,0 +1,4 @@
+# esbuild ships a platform-specific binary and needs its install script to run.
+# vite depends on it, so this must stay true.
+allowBuilds:
+  esbuild: true
