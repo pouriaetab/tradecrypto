@@ -202,6 +202,11 @@ async function req(path, opts = {}) {
 }
 
 export const api = {
+  // first run: demo or live
+  firstRun: () => req('/first_run'),
+  firstRunDemo: () => req('/first_run/demo', { method: 'POST', body: {} }),
+  firstRunLive: () => req('/first_run/live', { method: 'POST', body: {} }),
+  firstRunClearDemo: () => req('/first_run/clear_demo', { method: 'POST', body: {} }),
   status: () => req('/system/status'),
   dayScan: (day, opts = {}) => req('/dayscan?' + qs({ day, tradable_only: opts.tradableOnly, as_of_hour: opts.asOfHour, hot_volume: opts.hotVolume })),
   dayScanRange: (start, end, tradableOnly, hotVolume) => req('/dayscan/range?' + qs({ start, end, tradable_only: tradableOnly, hot_volume: hotVolume })),

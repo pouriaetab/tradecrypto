@@ -720,3 +720,20 @@ th.drop-here { box-shadow: inset 3px 0 0 var(--accent); }
 .card-toggle:hover { color: var(--text); }
 .card.collapsed { padding-bottom: 8px; }
 .card.collapsed h3 { margin: 0; }
+
+/* ── first run ───────────────────────────────────────────────────────────── */
+/* One question, two answers, nothing else on screen. A new person meeting
+   eighteen empty tabs cannot tell a working program from a broken one. */
+.fr-wrap { max-width: 900px; margin: 6vh auto 0; padding: 0 16px; }
+.fr-h1 { font-size: 26px; margin: 0 0 6px; }
+.fr-sub { margin-bottom: 22px; font-size: 14px; }
+.fr-grid { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; align-items: stretch; }
+@media (max-width: 760px) { .fr-grid { grid-template-columns: 1fr; } }
+.fr-choice { display: flex; flex-direction: column; }
+.fr-choice-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+.fr-choice-lead { font-size: 13px; margin-bottom: 10px; }
+.fr-points { margin: 0 0 14px; padding-left: 18px; font-size: 13px; line-height: 1.65; flex: 1; }
+.fr-note { font-size: 12px; margin-top: 8px; text-align: center; }
+.fr-foot { margin-top: 20px; font-size: 12.5px; text-align: center; }
+.fr-bar { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.fr-bar-actions { display: flex; gap: 8px; flex-shrink: 0; }

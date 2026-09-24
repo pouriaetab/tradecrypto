@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+import FirstRunGate from './components/FirstRun.jsx'
 import { ModelDrawer, SymbolChartHost } from './components/ui.jsx'
 import { api, onConnection, isOnline, offlineReason, needsToken, onTokenNeeded, setAccessToken,
          denyReason, verifyToken } from './lib/api.js'
@@ -285,6 +286,13 @@ export default function App() {
   const byId = Object.fromEntries(PAGES.map(([id, label, C]) => [id, { label, C }]))
   const Page = (byId[page] || byId.overview).C
   return (
+    // The whole shell is wrapped, not just the page area. A new person meeting
+    // eighteen tabs, a drag-to-reorder hint and a Paper/Advisory/Live switch
+    // cannot tell a working program from a broken one -- the operator's words
+    // were "this app is confusing and also the setup is overwhelming". So on the
+    // very first run the gate renders ONE question and nothing else; from the
+    // second run onward it passes everything through untouched.
+    <FirstRunGate>
     <div className="app">
       <aside className="sidebar">
         <PhoneNav pages={order.filter((id) => byId[id]).map((id) => ({ id, label: byId[id].label }))}
@@ -322,5 +330,6 @@ export default function App() {
           above every panel, and there is only ever one of them open. */}
       <SymbolChartHost />
     </div>
+    </FirstRunGate>
   )
 }

@@ -101,6 +101,19 @@ CREATE TABLE IF NOT EXISTS app_state (
     updated_ts REAL
 );
 
+-- Created lazily by app/research/daily_report.py, which means it does not exist
+-- until that job has run once. The DATA-INTEGRITY CHECK for it does not wait:
+-- on a fresh install `reports_carry_a_shape` raised "no such table:
+-- daily_reports", so the first thing a new user saw on the Data page was their
+-- own install reporting itself broken. Same class as app_state above: a table
+-- the app needs belongs in the schema, not in whichever module happens to
+-- touch it first (webapp_blueprint CHECKLIST 5.53).
+CREATE TABLE IF NOT EXISTS daily_reports (
+    day TEXT PRIMARY KEY,
+    built_at REAL NOT NULL,
+    summary_json TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS signals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     ts REAL NOT NULL,

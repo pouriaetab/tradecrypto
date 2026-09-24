@@ -122,6 +122,38 @@ def safety():
     return ok(_clean({**get_settings().safety_report(), "broker": get_broker().probe()}))
 
 
+# ── first run: demo or live ──────────────────────────────────────────────────
+#
+# A correct empty dashboard is indistinguishable from a broken one, and that is
+# what a new person actually meets. These four give them a way in.
+
+
+@router.get("/first_run")
+def first_run_state():
+    from app.core import first_run
+    return ok(_clean(first_run.state()))
+
+
+@router.post("/first_run/demo")
+def first_run_demo(payload: dict = Body(default={})):
+    from app.core import first_run
+    days = int(payload.get("days") or first_run.DEMO_DAYS)
+    res = first_run.seed_demo(days=days)
+    return ok(_clean(res), "demo book ready" if res.get("ok") else res.get("error", "could not build the demo"))
+
+
+@router.post("/first_run/live")
+def first_run_live():
+    from app.core import first_run
+    return ok(_clean(first_run.choose_live()), "starting with an empty book")
+
+
+@router.post("/first_run/clear_demo")
+def first_run_clear_demo():
+    from app.core import first_run
+    return ok(_clean(first_run.clear_demo()), "demo trades removed")
+
+
 @router.post("/engine/start")
 def engine_start(payload: dict = Body(default={})):
     return ok(_clean(engine.start(payload.get("strategies"))))

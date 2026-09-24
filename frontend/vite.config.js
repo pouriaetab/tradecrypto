@@ -42,5 +42,20 @@ export default defineConfig({
     // anything once the app is reachable from outside.
     proxy: { '/api': { target: `http://127.0.0.1:${BACKEND}`, changeOrigin: true, xfwd: true } },
   },
-  build: { outDir: 'dist', sourcemap: false },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    // FIXED FILENAMES, because frontend/dist is COMMITTED (it is what lets
+    // someone with no Node run this at all). With Vite's content hashes every
+    // rebuild writes index-<newhash>.js and leaves index-<oldhash>.js behind in
+    // git forever, so the repo grows a little graveyard on each release and
+    // nothing ever removes it.
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/app.js',
+        chunkFileNames: 'assets/[name].js',
+        assetFileNames: 'assets/app.[ext]',
+      },
+    },
+  },
 })
