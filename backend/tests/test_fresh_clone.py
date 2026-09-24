@@ -323,8 +323,10 @@ def test_the_example_settings_have_not_drifted_from_the_real_ones():
 
 # ── 6. the install must be fast on whatever Python the user happens to have ──
 
-SUPPORTED_PY = ("cp311", "cp312", "cp313", "cp314")
-COMPILED = ("numpy", "pandas", "scipy", "statsmodels", "scikit-learn", "matplotlib")
+SUPPORTED_PY = ("311", "312", "313", "314")
+# Both Mac chips. A wheel set can be complete on one and not the other.
+MAC_ARM = ("macosx_11_0_arm64", "macosx_14_0_arm64", "macosx_10_13_universal2")
+MAC_X86 = ("macosx_10_13_x86_64", "macosx_11_0_x86_64", "macosx_10_13_universal2")
 
 
 def _pins() -> dict[str, str]:
@@ -337,57 +339,69 @@ def _pins() -> dict[str, str]:
     return out
 
 
-def test_the_compiled_pins_are_named_versions_not_ranges():
-    """Cheap, offline, and catches the common mistake of loosening a pin."""
-    pins = _pins()
-    for name in COMPILED:
-        if name in pins:
-            assert pins[name][0].isdigit(), f"{name} pin looks wrong: {pins[name]}"
+def test_every_dependency_is_pinned_to_an_exact_version():
+    """Cheap, offline. A floating pin means two people get different code."""
+    bad = []
+    for line in (ROOT / "backend" / "requirements.txt").read_text().splitlines():
+        line = line.split("#")[0].strip()
+        if line and "==" not in line:
+            bad.append(line)
+    assert not bad, f"not pinned to an exact version: {bad}"
 
 
 @pytest.mark.skipif(
     os.environ.get("TC_NO_NETWORK_TESTS", "") not in ("", "0"),
     reason="network tests disabled",
 )
-def test_every_compiled_pin_has_a_prebuilt_package_for_every_supported_python():
-    """The 15-minute silent compile, turned into a 5-second test.
+@pytest.mark.parametrize("pyver", SUPPORTED_PY)
+@pytest.mark.parametrize("platforms,chip", [(MAC_ARM, "arm64"), (MAC_X86, "x86_64")])
+def test_the_whole_tree_installs_from_prebuilt_packages(pyver, platforms, chip):
+    """THE WHOLE TREE. Not a list of names someone remembered to write down.
 
-    numpy, pandas and scipy ship as compiled code, built per Python version. A
-    pin with no build for the Python someone has does NOT fail -- pip quietly
-    downloads the source and compiles for the better part of an hour, then dies
-    on scipy for want of a Fortran compiler. The screen just scrolls.
+    A missing binary wheel is not an error. pip downloads the source and starts
+    compiling -- no warning, no estimate, no explanation -- for the better part
+    of an hour, and then fails.
 
-    2026-09-24: numpy 2.2.1 and pandas 2.2.3 stop at Python 3.13. python.org
-    hands new users 3.14. A fresh install sat compiling for over fifteen minutes
-    with nothing on screen explaining it.
+    Twice in one day, 2026-09-24:
+
+      1. numpy 2.2.1 and pandas 2.2.3 stop at Python 3.13, while python.org
+         hands new users 3.14. A fresh install compiled for 15+ minutes.
+      2. Fixed by checking six packages BY NAME. The next failure was
+         `pydantic-core`, which nobody lists in requirements.txt -- pydantic
+         pulls it in. It is written in Rust, and its build died with "the
+         configured Python interpreter version (3.14) is newer than PyO3's
+         maximum supported version (3.13)".
+
+    The lesson is the second one. A hand-written list checks what you thought
+    of; a resolver checks what pip will actually do. So this resolves the FULL
+    dependency graph, wheels only, for every Python and both Mac chips.
+
+    --dry-run means metadata only: about 8 seconds per combination, no
+    gigabytes of wheels.
     """
-    import json
-    import urllib.request
+    import subprocess
+    import sys
+    import tempfile
 
-    pins = _pins()
-    missing = []
-    for name in COMPILED:
-        ver = pins.get(name)
-        if not ver:
-            continue
-        url = f"https://pypi.org/pypi/{name}/{ver}/json"
+    args = [
+        sys.executable, "-m", "pip", "install", "--dry-run", "--ignore-installed",
+        "--only-binary=:all:", "--python-version", pyver,
+        "--implementation", "cp", "--abi", f"cp{pyver}",
+    ]
+    for plat in platforms:
+        args += ["--platform", plat]
+    with tempfile.TemporaryDirectory() as tmp:
+        args += ["--target", tmp, "-r", str(ROOT / "backend" / "requirements.txt"), "-q"]
         try:
-            with urllib.request.urlopen(url, timeout=30) as fh:
-                data = json.load(fh)
-        except Exception as exc:  # offline, or PyPI is down: not a code failure
-            pytest.skip(f"could not reach PyPI for {name}: {exc}")
-        have = {
-            tag
-            for f in data.get("urls", [])
-            for tag in SUPPORTED_PY
-            if tag in f["filename"]
-        }
-        if not set(SUPPORTED_PY) <= have:
-            missing.append(
-                f"{name}=={ver} has no prepared package for "
-                f"{sorted(set(SUPPORTED_PY) - have)}"
-            )
-    assert not missing, (
-        "a fresh install on one of these Pythons will COMPILE FROM SOURCE for "
-        "30-60 minutes and probably fail:\n  " + "\n  ".join(missing)
-    )
+            r = subprocess.run(args, capture_output=True, text=True, timeout=300)
+        except (subprocess.TimeoutExpired, OSError) as exc:
+            pytest.skip(f"could not reach PyPI: {exc}")
+    if r.returncode != 0:
+        out = (r.stderr or r.stdout or "").strip()
+        if "Could not find a version" not in out and "No matching distribution" not in out:
+            pytest.skip(f"resolution could not run: {out[:300]}")
+        pytest.fail(
+            f"On Python 3.{pyver[1:]} ({chip}) at least one dependency has NO "
+            f"ready-made package, so a fresh install will COMPILE FROM SOURCE "
+            f"for 30-60 minutes and probably fail:\n\n{out[-1200:]}"
+        )

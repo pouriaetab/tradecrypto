@@ -1,26 +1,29 @@
-# PINNED SO THAT EVERY PYTHON FROM 3.11 TO 3.14 GETS A READY-MADE PACKAGE.
+# PINNED SO EVERY PYTHON FROM 3.11 TO 3.14 GETS READY-MADE PACKAGES.
 #
-# This is not about being current. numpy, pandas and scipy ship as compiled
-# code, built separately for each Python version. If the pinned version has no
-# build for the Python you have, pip does not fail -- it silently downloads the
-# source and starts COMPILING, for 30-60 minutes, ending in a scipy failure
-# because it needs a Fortran compiler that is not installed. The screen just
-# scrolls. Nothing says why.
+# This is not about being current. numpy, pandas, scipy and pydantic-core ship
+# as compiled code, built separately for each Python version. If a pin has no
+# build for the Python you happen to have, pip does NOT fail -- it downloads the
+# source and starts compiling, with no warning and no estimate, for 30-60
+# minutes, and then dies. The screen just scrolls.
 #
-# That is exactly what happened on 2026-09-24: numpy 2.2.1 and pandas 2.2.3
-# stop at Python 3.13, python.org hands new users 3.14, and a fresh install sat
-# compiling for over fifteen minutes before being killed.
+# It happened twice on 2026-09-24:
+#   1. numpy 2.2.1 / pandas 2.2.3 stop at Python 3.13. python.org hands new
+#      users 3.14. A fresh install compiled for over fifteen minutes.
+#   2. Then pydantic-core -- which is NOT listed here, pydantic pulls it in --
+#      failed with "the configured Python interpreter version (3.14) is newer
+#      than PyO3's maximum supported version (3.13)". It is written in Rust.
 #
-# The versions below are the EARLIEST that have prepared packages for all of
-# 3.11, 3.12, 3.13 and 3.14, so whichever Python someone happens to have, the
-# install takes about half a minute.
+# The second one is the lesson: a hand-written list of "the compiled ones"
+# checks what you thought of. `test_fresh_clone.py` resolves the ENTIRE tree,
+# wheels only, for 3.11/3.12/3.13/3.14 on both Mac chips, in about 30 seconds.
+# Run it before changing any pin below.
 #
-# Before changing any of the four scientific pins, check the replacement has
-# builds for every supported Python. `test_fresh_clone.py` checks this too.
+# Verified 2026-09-24: 8/8 combinations resolve from wheels; install takes ~30s;
+# full suite 540 passed.
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
-pydantic==2.10.4
-pydantic-settings==2.7.0
+pydantic==2.13.5
+pydantic-settings==2.15.0
 httpx==0.28.1
 numpy==2.4.6
 pandas==3.0.6
