@@ -223,8 +223,16 @@ def report() -> dict:
     now = time.time()
     # How long this desk has been collecting at all -- a mechanism cannot be
     # blamed for not firing before there was anything to fire on.
+    #
+    # DEMO ORDERS MUST NOT AGE THE DESK. The first-run demo replays a month of
+    # real history, so its orders are timestamped weeks back. Reading the oldest
+    # order made a five-minute-old install look a month old, and every mechanism
+    # that had not yet fired was immediately reported as overdue in red — the
+    # first thing a new user saw was their own install accusing itself.
     try:
-        r = db.query_one("SELECT MIN(ts_decided) m FROM orders")
+        r = db.query_one(
+            "SELECT MIN(ts_decided) m FROM orders "
+            "WHERE ticket_json IS NULL OR ticket_json NOT LIKE '%\"demo\": true%'")
         since = float(r["m"]) if r and r["m"] else now
     except Exception:
         since = now

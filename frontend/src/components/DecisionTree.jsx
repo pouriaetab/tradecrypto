@@ -9,7 +9,7 @@
  * /api/v1/decision-tree, which reads what the engine already recorded and
  * refuses to invent the parts that were never recorded.
  */
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { api, fmt } from '../lib/api.js'
 import { Banner, Card, Info, useAsync } from './ui.jsx'
 
@@ -160,7 +160,94 @@ function Candidate({ c, expr }) {
   )
 }
 
-function ModelLayer({ m }) {
+function Arena({ strategy }) {
+  // Fetched only when this section is opened. Fitting five models per strategy
+  // is not free, and doing it for six strategies on every page load would make
+  // the tree slow enough that nobody opens it.
+  const [d, setD] = useState(null)
+  const [err, setErr] = useState('')
+  useEffect(() => {
+    let alive = true
+    api.modelArena(strategy)
+      .then((r) => alive && setD(r))
+      .catch((e) => alive && setErr(String(e.message || e)))
+    return () => { alive = false }
+  }, [strategy])
+
+  if (err) return <div className="mut">could not fit: {err}</div>
+  if (!d) return <div className="mut">fitting the models…</div>
+
+  if (!d.available) {
+    return (
+      <div className="dt-odds">
+        <b>Not enough finished trades yet</b>
+        <div className="mut" style={{ marginTop: 4 }}>{d.why}</div>
+        <div className="mut" style={{ marginTop: 4 }}>
+          {d.n_outcomes} of about {d.need} needed. This fills in as the strategy
+          trades — nothing is shown here until it can be scored honestly.
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="dt-odds">
+        <b>{d.champion ? d.champion.label + ' leads' : 'no champion'}</b>
+        <span className="mut"> · {d.n_train} trained / {d.n_holdout} held out ·
+          base rate {(d.base_rate * 100).toFixed(0)}%</span>
+        <div className="mut" style={{ marginTop: 4 }}>{d.split}</div>
+        <div style={{ marginTop: 4 }}>{d.verdict}</div>
+      </div>
+
+      <table className="dt-vars">
+        <thead><tr>
+          <th>model</th><th className="num">variables</th><th className="num">AUC</th>
+          <th className="num">95% CI</th><th className="num">Brier</th><th>standing</th>
+        </tr></thead>
+        <tbody>
+          {(d.entrants || []).map((e) => (
+            <tr key={e.key} className={e.key === 'base_rate' ? 'dt-role-recorded' : ''}>
+              <td title={e.why}>{e.label}</td>
+              <td className="num mono">{e.n_variables}</td>
+              <td className="num mono">{num(e.auc, 3)}</td>
+              <td className="num mono">
+                {e.auc_ci95 && e.auc_ci95[0] === e.auc_ci95[0]
+                  ? `${num(e.auc_ci95[0], 2)}–${num(e.auc_ci95[1], 2)}` : '—'}
+              </td>
+              <td className="num mono">{num(e.brier, 3)}</td>
+              <td>
+                {e.is_champion
+                  ? <span className="pill ok">champion</span>
+                  : e.beats_chance
+                    ? <span className="pill">beats chance</span>
+                    : <span className="mut">inside the noise</span>}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {d.champion && !!(d.champion.coefficients || []).length && (
+        <>
+          <div className="dt-section-label">
+            what the champion leans on, strongest first
+          </div>
+          <Variables rows={d.champion.coefficients.map((c) => ({
+            name: c.feature, value: null, role: 'recorded', importance: {
+              coef: c.coef, z: c.z, std_error: c.std_error,
+              odds_ratio: c.odds_ratio, significant: c.significant_5pct,
+            },
+          }))} />
+        </>
+      )}
+
+      <div className="mut" style={{ marginTop: 8, fontSize: 12 }}>{d.note}</div>
+    </>
+  )
+}
+
+function ModelLayer({ m, strategy }) {
   const hp = m.hour_profile
   const q = m.quality
   const v = m.versions || {}
@@ -202,6 +289,12 @@ function ModelLayer({ m }) {
           </tbody>
         </table>
       ) : <div className="mut">no retraining runs recorded yet</div>}
+
+      <div className="dt-section-label">
+        models competing on held-out data
+        <Info text="Each model is fitted on the oldest 70% of this strategy's own finished trades and scored once on the newest 30%. The split is by time, never shuffled. 'no variables at all' is the control — a model that cannot beat it has learned nothing." />
+      </div>
+      <Arena strategy={strategy} />
 
       <div className="dt-section-label">
         which variables actually carried information
@@ -261,15 +354,25 @@ export default function DecisionTree() {
         </Banner>
       )}
 
+      {(d.strategies || []).every((s) => !s.ts) && (
+        <Banner kind="info" title="No decisions recorded yet">
+          The engine writes one of these every time it looks at the market. On a
+          brand-new install it needs a few minutes of price history first, and
+          then this fills in by itself. Nothing is wrong.
+        </Banner>
+      )}
+
       <div className="dt-tree">
         {(d.strategies || []).map((s) => {
           const c = s.considered
-          const meta = [
-            `${c.universe} coins looked at`,
-            `${c.emitted} setups found`,
-            s.selected ? `funded ${s.selected.symbol}` : 'nothing funded',
-            s.ts ? fmt.time(s.ts) : 'no decision yet',
-          ].join(' · ')
+          const meta = s.ts
+            ? [
+                `${c.universe} coins looked at`,
+                `${c.emitted} setups found`,
+                s.selected ? `funded ${s.selected.symbol}` : 'nothing funded',
+                fmt.time(s.ts),
+              ].join(' · ')
+            : 'has not run yet — no price history for it to judge'
           return (
             <Node
               key={s.strategy}
@@ -277,7 +380,7 @@ export default function DecisionTree() {
               meta={meta}
               count={c.emitted}
               tone={s.selected ? 'ok' : 'off'}
-              defaultOpen={!!s.selected}
+              defaultOpen={(s.candidates || []).length > 0}
             >
               <div className="mono mut dt-expr">
                 {(s.recipe || {}).expr || 'scoring expression not recorded'}
@@ -286,20 +389,32 @@ export default function DecisionTree() {
                 <div className="mut dt-plain">{s.recipe.plain}</div>
               )}
 
-              <Node title="the field" meta={c.note} count={c.emitted} defaultOpen>
+              <Node
+                title="the field"
+                meta={s.ts ? c.note : 'nothing to show until it has run once'}
+                count={c.emitted}
+                defaultOpen
+              >
                 {(s.candidates || []).length
                   ? s.candidates.map((cd) => (
                       <Candidate key={cd.symbol} c={cd} expr={(s.recipe || {}).expr} />
                     ))
-                  : <div className="mut">
-                      No setup passed this strategy's own entry conditions on the
-                      last bar. That is a decision too — it is what "no trade"
-                      looks like from the inside.
-                    </div>}
+                  : (
+                    <div className="mut">
+                      {s.ts
+                        ? `It looked at all ${c.universe} coins on the last bar and
+                           not one passed its own entry conditions. That is a
+                           decision too — it is what "no trade" looks like from
+                           the inside.`
+                        : `This strategy has not produced a decision yet. It needs
+                           enough stored price history to judge, which arrives on
+                           its own within the first few minutes.`}
+                    </div>
+                  )}
               </Node>
 
               <Node title="the model behind it" meta="weights, rivals, evidence">
-                <ModelLayer m={s.model || {}} />
+                <ModelLayer m={s.model || {}} strategy={s.strategy} />
               </Node>
             </Node>
           )

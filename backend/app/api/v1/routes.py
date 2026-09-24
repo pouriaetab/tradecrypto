@@ -122,6 +122,18 @@ def safety():
     return ok(_clean({**get_settings().safety_report(), "broker": get_broker().probe()}))
 
 
+@router.get("/model-arena")
+def model_arena(strategy: str, with_candidates: bool = False):
+    """Several models per strategy, judged on held-out data."""
+    from app.research import decision_tree as dt
+    from app.research import model_arena as arena
+    if not with_candidates:
+        return ok(_clean(arena.run(strategy)))
+    tree = dt.live("paper", [strategy])
+    cands = (tree.get("strategies") or [{}])[0].get("candidates") or []
+    return ok(_clean(arena.rank_candidates(strategy, cands)))
+
+
 @router.get("/decision-tree")
 def decision_tree(mode: str | None = None, strategy: str | None = None):
     """The whole decision, per strategy, opened all the way up."""

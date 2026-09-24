@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { api } from '../lib/api.js'
 import { Card, Info, Banner, useAsync } from '../components/ui.jsx'
+import RunMode from '../components/RunMode.jsx'
 
 /* Everything here used to be a list of terminal commands. It did not have to be:
    the backend runs on this machine, as you, so it can install its own
@@ -94,6 +95,11 @@ export default function Setup() {
   return (
     <>
       <h1>Setup</h1>
+
+      {/* Demo vs live belongs at the TOP of Setup: it is the question a new
+          person actually has, and the first-run screen only asks it once. */}
+      <RunMode />
+
       <p className="sub">
         Connect Robinhood. Five steps, four of them buttons.
         <Info text="The backend runs on your machine as you, so it can install what it needs, generate its own keys and restart itself. The only step that needs a person is signing in to Robinhood — that is your account." />

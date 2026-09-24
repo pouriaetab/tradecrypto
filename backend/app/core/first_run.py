@@ -103,7 +103,62 @@ def state() -> dict[str, Any]:
         "demo_ready": ready,
         "demo_blocked_reason": None if ready else why,
         "seeded_ts": float(_get(SEEDED_KEY) or 0) or None,
+        "engine_running": _engine_running(),
+        "robinhood": _robinhood(),
+        "real_money": _real_money(),
     }
+
+
+def _engine_running() -> bool:
+    try:
+        from app.execution import engine
+        return bool(engine.status().get("running"))
+    except Exception:
+        return False
+
+
+def _robinhood() -> dict:
+    """Read-only status. This never asks for, stores or transmits a credential.
+
+    Connecting Robinhood does NOT turn on real-money trading and is not needed
+    to run: prices come from Coinbase, free and anonymous. What it adds is which
+    coins Robinhood will actually trade, and each coin's real spread instead of
+    the published default.
+    """
+    try:
+        from app.config import get_settings
+        path = get_settings().rh_credentials_file
+        return {
+            "connected": bool(path and path.exists()),
+            "where": str(path) if path else None,
+            "what_it_adds": ("which coins Robinhood will actually trade, and "
+                             "each coin's own measured spread instead of the "
+                             "published default"),
+            "not_needed_for": ("prices, strategies, signals or paper trading — "
+                               "those work with no account at all"),
+        }
+    except Exception:
+        return {"connected": False, "where": None}
+
+
+def _real_money() -> dict:
+    """Whether this install could place a real order. It cannot, by default.
+
+    Two independent locks: the mode must be `mcp`, AND `.env` must carry an
+    exact confirmation phrase that ships empty. A button in the interface can
+    never satisfy the second one — that is the point of it.
+    """
+    try:
+        from app.core import mode as mode_mod
+        return {
+            "possible": bool(mode_mod.live_allowed()),
+            "mode": mode_mod.get_mode(),
+            "how_it_stays_off": ("TC_LIVE_CONFIRM is empty in .env. Nothing in "
+                                 "this interface can change it — it has to be "
+                                 "typed into the file by hand, on purpose."),
+        }
+    except Exception:
+        return {"possible": False, "mode": "paper"}
 
 
 def demo_ready() -> tuple[bool, str]:

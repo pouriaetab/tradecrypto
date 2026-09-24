@@ -198,7 +198,13 @@ def status() -> dict:
     newest = max((f.stat().st_mtime for f in files), default=None)
     return {
         "dir": str(d),
-        "inside_project": str(d.resolve()).startswith(str(Path(__file__).resolve().parents[3])),
+        # A STRING PREFIX IS NOT A PARENT DIRECTORY. The default vault is
+        # ~/tradecrypto-vault and the project is ~/tradecrypto, so startswith()
+        # answered True and a correctly-placed vault reported itself "NOT
+        # independent" to every new user. Same bug class as the unanchored
+        # "/data/" pattern in webapp_blueprint 5.53 — compare path components.
+        "inside_project": d.resolve().is_relative_to(
+            Path(__file__).resolve().parents[3]),
         "exists": d.exists(),
         "days": len(files),
         "records": lines,

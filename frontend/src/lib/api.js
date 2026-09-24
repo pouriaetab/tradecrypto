@@ -40,7 +40,7 @@ function _setOnline(v, reason) {
 // takes more than a few seconds is a fault, not slowness.
 const TIMEOUT_MS = 20000
 const SLOW_TIMEOUT_MS = 120000
-const SLOW = /^\/(research|strategies\/days|backfill|breakout\/train|tests\/run|macro\/(fetch|correlations)|library\/fetch|dayscan\/range|universe\/(review|selection)|robinhood\/(measure-spreads|sync-universe))/
+const SLOW = /^\/(research|model-arena|strategies\/days|backfill|breakout\/train|tests\/run|macro\/(fetch|correlations)|library\/fetch|dayscan\/range|universe\/(review|selection)|robinhood\/(measure-spreads|sync-universe))/
 
 // /scheduler/job/<name>/run blocks until the job FINISHES, and breakout_train
 // takes 33 minutes. At the normal 20-second deadline the request aborted while
@@ -203,6 +203,7 @@ async function req(path, opts = {}) {
 
 export const api = {
   // first run: demo or live
+  modelArena: (strategy, withCandidates) => req(`/model-arena?strategy=${strategy}` + (withCandidates ? '&with_candidates=true' : '')),
   decisionTree: (strategy) => req('/decision-tree' + (strategy ? `?strategy=${strategy}` : '')),
   firstRun: () => req('/first_run'),
   firstRunDemo: () => req('/first_run/demo', { method: 'POST', body: {} }),
