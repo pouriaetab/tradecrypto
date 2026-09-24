@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import time
+from pathlib import Path as _Path
 
 from contextlib import asynccontextmanager
 
@@ -179,6 +180,27 @@ async def lifespan(_: FastAPI):
         # all moved on days he pointed at and none of them were in the universe,
         # because the seed list was a hand-typed guess. This has cost four
         # separate opportunities now; it should not need a button.
+        # SEED BEFORE ADOPTING. A fresh install has no Robinhood credentials, so
+        # adopt_from_robinhood() raises NotConfigured, is logged as a warning and
+        # swallowed -- and the universe stays EMPTY. Empty universe means no
+        # quotes, no signals, no trades: the desk starts, serves a dashboard and
+        # sits inert forever, with nothing in the log that says so.
+        #
+        # refresh_universe() needs no credentials at all. It intersects the seed
+        # list with whatever the PUBLIC feed can price, so it is the path that
+        # must always run; adoption then widens it when credentials exist.
+        try:
+            from app.data import universe as _useed
+            if not db.query("SELECT 1 FROM universe LIMIT 1"):
+                _s = _useed.refresh_universe()
+                log.info("universe seeded from %s with no credentials: %s coins priceable",
+                         _s.get("feed"), _s.get("priceable"))
+                db.log_event("INFO", "universe",
+                             f"first boot: seeded {_s.get('priceable')} coins from "
+                             f"{_s.get('feed')}; no credentials required")
+        except Exception as exc:
+            log.warning("universe seed failed: %s: %s", type(exc).__name__, exc)
+
         try:
             from app.data import universe as _u
             _a = _u.adopt_from_robinhood()
@@ -432,3 +454,25 @@ def health_check() -> dict:
         "pid": os.getpid(),
         "memory_watchdog": health.watch_alive(),
     }
+
+
+# ── the built dashboard, served by the backend itself ────────────────────────
+#
+# macOS has never shipped Node, so requiring `npm` in order to SEE anything made
+# "download it and run it" impossible for anyone who is not already a developer:
+# the friend this app was packaged for would install Python, get past that, and
+# then hit a second wall with no obvious fix.
+#
+# A production build is 9 files and 464K. When it is present the backend serves
+# it directly and the whole application needs nothing but Python. The dev server
+# is still used when it is running -- this is the fallback, not a replacement.
+#
+# Mounted LAST, after every API route and /health, because a mount at "/" would
+# otherwise shadow them. html=True makes unknown paths fall back to index.html,
+# which is what a single-page app needs for its client-side routes.
+_DIST = _Path(__file__).resolve().parents[2] / "frontend" / "dist"
+if (_DIST / "index.html").is_file():
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/", StaticFiles(directory=str(_DIST), html=True), name="dashboard")
+    log.info("dashboard served by the backend from %s (no Node required)", _DIST)

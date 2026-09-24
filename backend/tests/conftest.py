@@ -28,6 +28,14 @@ import pytest
 # Set before anything imports app.config, which caches its settings on first use.
 os.environ.setdefault("TC_DB_READONLY", "1")
 
+# And the declared stake. Position caps and the daily-loss limit are both
+# derived from TC_ACCOUNT_EQUITY, so with it read from the operator's own .env
+# the SUITE'S RESULTS MOVE WHEN THE OPERATOR CHANGES THEIR STAKE. Two tests
+# passed at $2,000 and failed at $500 -- which meant the first thing a new user
+# did (set their own stake) broke tests that had nothing to do with them, and
+# made a correct install look broken. Pin it, for the whole suite.
+os.environ["TC_ACCOUNT_EQUITY"] = "2000"
+
 # And the vault. It lives OUTSIDE the project by design, which means a test that
 # forgets to point it somewhere safe writes the operator's real one -- and the
 # vault is append-only, so there is no taking it back out. Forced here, for the

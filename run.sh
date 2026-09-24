@@ -11,9 +11,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 PROJECT_NAME="TradeCrypto"
-BACKEND_PORT="${BACKEND_PORT:-8006}"
-FRONTEND_PORT="${FRONTEND_PORT:-5180}"
-export BACKEND_PORT FRONTEND_PORT
+# Remember whether the SHELL set these, before any default is applied. Without
+# this, "unset" and "8006" are indistinguishable two lines later and .env can
+# never be consulted -- which is exactly why BACKEND_PORT=8106 in .env was
+# silently ignored and a second copy of the app collided with the first.
+_SHELL_BACKEND_PORT="${BACKEND_PORT:-}"
+_SHELL_FRONTEND_PORT="${FRONTEND_PORT:-}"
 
 # launchd starts LaunchAgents with a minimal PATH (/usr/bin:/bin:/usr/sbin:/sbin).
 # Homebrew/nvm node, pnpm and the Python framework are all invisible there, which
@@ -49,6 +52,17 @@ cd "$SCRIPT_DIR"
 # file or directory", and set -e takes the whole script down. Make them.
 mkdir -p logs secrets data
 [ -f .env ] || { cp .env.example .env; log "created .env from .env.example"; }
+
+# Read a plain KEY=value out of .env. Defined here, before the ports, because
+# the ports need it. Precedence: shell environment > .env > built-in default.
+env_flag() {
+  grep -E "^$1=" .env 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '[:space:]' | cut -d'#' -f1
+}
+BACKEND_PORT="${_SHELL_BACKEND_PORT:-$(env_flag BACKEND_PORT)}"
+FRONTEND_PORT="${_SHELL_FRONTEND_PORT:-$(env_flag FRONTEND_PORT)}"
+BACKEND_PORT="${BACKEND_PORT:-8006}"
+FRONTEND_PORT="${FRONTEND_PORT:-5180}"
+export BACKEND_PORT FRONTEND_PORT
 
 # macOS privacy protection (TCC) applies to ~/Desktop, ~/Documents and ~/Downloads.
 # A process started by launchd has no access to them unless its BINARY has been
@@ -86,6 +100,8 @@ find_python() {
 # which reads as dangling across the Cowork bridge. Use the file as the marker.
 backend_ready()  { [ -f backend/.venv/pyvenv.cfg ]; }
 frontend_ready() { [ -x frontend/node_modules/.bin/vite ]; }
+# The committed production build. Its presence is what makes Node optional.
+dashboard_built() { [ -f frontend/dist/index.html ]; }
 
 # `command -v pnpm` only proves the file is on PATH. A pnpm newer than the
 # installed Node refuses to run at all:
@@ -96,6 +112,30 @@ frontend_ready() { [ -x frontend/node_modules/.bin/vite ]; }
 pnpm_works() { command -v pnpm >/dev/null 2>&1 && pnpm --version >/dev/null 2>&1; }
 npm_works()  { command -v npm  >/dev/null 2>&1 && npm  --version >/dev/null 2>&1; }
 
+# `bash run.sh stop`. START-HERE.md has told people to type this for months and
+# it did not exist: an unrecognised argument fell through to the normal start,
+# which then failed with "port already in use" -- the exact opposite of stopping.
+if [ "${1:-}" = "stop" ] || [ "${1:-}" = "--stop" ]; then
+  _stopped=0
+  if command -v lsof >/dev/null 2>&1; then
+    for _p in "$BACKEND_PORT" "$FRONTEND_PORT"; do
+      for _pid in $(lsof -ti tcp:"$_p" -sTCP:LISTEN 2>/dev/null); do
+        kill "$_pid" 2>/dev/null && _stopped=1
+      done
+    done
+    sleep 1
+    for _p in "$BACKEND_PORT" "$FRONTEND_PORT"; do
+      for _pid in $(lsof -ti tcp:"$_p" -sTCP:LISTEN 2>/dev/null); do
+        kill -9 "$_pid" 2>/dev/null || true
+      done
+    done
+  else
+    pkill -f "uvicorn app.main:app" 2>/dev/null && _stopped=1
+  fi
+  [ "$_stopped" = 1 ] && ok "stopped." || log "nothing was running."
+  exit 0
+fi
+
 # --check runs BEFORE any install so it can diagnose a broken environment
 # rather than failing on the thing you are trying to diagnose.
 if [ "${1:-}" = "--check" ]; then
@@ -105,7 +145,7 @@ if [ "${1:-}" = "--check" ]; then
   echo "frontend vite:  $(frontend_ready && echo present || echo MISSING)"
   echo "pnpm:           $(pnpm_works && pnpm --version || echo "$(command -v pnpm >/dev/null 2>&1 && echo 'installed but WILL NOT RUN' || echo 'not installed')")"
   echo "node:           $(command -v node >/dev/null 2>&1 && node -v || echo 'not installed')"
-  echo "mode:           $(grep -E '^TC_EXECUTION_MODE=' .env 2>/dev/null | head -1 | cut -d= -f2 | tr -d '[:space:]')"
+  echo "mode:           $(grep -E '^TC_EXECUTION_MODE=' .env 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '[:space:]')"
   echo "ports:          backend $BACKEND_PORT / frontend $FRONTEND_PORT"
   if command -v lsof >/dev/null 2>&1; then
     echo "port $BACKEND_PORT held by:  $(lsof -ti tcp:"$BACKEND_PORT" 2>/dev/null | tr '\n' ' ')"
@@ -194,7 +234,17 @@ if [ "${1:-}" = "--doctor" ]; then
 fi
 
 if ! backend_ready; then
-  PY="$(find_python)" || { err "no Python >= 3.11 on PATH"; exit 1; }
+  if ! PY="$(find_python)"; then
+    err "This app needs Python 3.11 or newer, and this Mac does not have it."
+    err "(macOS comes with an older Python that will not run it.)"
+    err ""
+    err "To fix it, once:"
+    err "  1. Open  https://www.python.org/downloads/"
+    err "  2. Click the big yellow Download button."
+    err "  3. Open the file it downloads and click Continue until it finishes."
+    err "  4. Come back here and run this again."
+    exit 1
+  fi
   log "creating backend venv with $PY ($("$PY" --version 2>&1))…"
   ( cd backend \
     && "$PY" -m venv .venv \
@@ -207,7 +257,17 @@ fi
 # pnpm can exit non-zero on advisory conditions (ignored build scripts, update
 # notices) while having installed everything correctly, so success is judged by
 # whether vite actually landed — never by the exit code.
-if ! frontend_ready; then
+# NODE IS OPTIONAL. macOS has never shipped it, so for anyone who is not already
+# a developer "install Node first" is where the app ends. When neither package
+# manager works but the production build is committed, the backend serves the
+# dashboard itself and nothing else is needed.
+USE_BUILT_DASHBOARD=""
+if ! frontend_ready && ! pnpm_works && ! npm_works && dashboard_built; then
+  USE_BUILT_DASHBOARD=1
+  log "no Node on this Mac — serving the built dashboard from the backend instead"
+fi
+
+if [ -z "$USE_BUILT_DASHBOARD" ] && ! frontend_ready; then
   log "installing frontend dependencies…"
   if pnpm_works; then
     ( cd frontend && pnpm install ) || warn "pnpm exited non-zero; checking whether it installed anyway"
@@ -219,15 +279,21 @@ if ! frontend_ready; then
     ( cd frontend && npm install --no-audit --no-fund ) || true
   fi
   if ! frontend_ready; then
-    err "frontend install failed — frontend/node_modules/.bin/vite is missing"
-    err "try:  cd frontend && pnpm install && pnpm approve-builds"
-    exit 1
+    if dashboard_built; then
+      warn "could not install the dev server; using the built dashboard instead"
+      USE_BUILT_DASHBOARD=1
+    else
+      err "the dashboard cannot start: no Node, and no built copy to fall back on."
+      err "The owner of this project should run:  cd frontend && npm run build"
+      err "and commit frontend/dist."
+      exit 1
+    fi
   fi
   ok "frontend dependencies installed"
 fi
 
-MODE="$(grep -E '^TC_EXECUTION_MODE=' .env | head -1 | cut -d= -f2 | tr -d '[:space:]' || true)"
-CONFIRM="$(grep -E '^TC_LIVE_CONFIRM=' .env | head -1 | cut -d= -f2 | tr -d '[:space:]' || true)"
+MODE="$(grep -E '^TC_EXECUTION_MODE=' .env | tail -1 | cut -d= -f2 | tr -d '[:space:]' || true)"
+CONFIRM="$(grep -E '^TC_LIVE_CONFIRM=' .env | tail -1 | cut -d= -f2 | tr -d '[:space:]' || true)"
 if [ "$MODE" = "mcp" ] && [ "$CONFIRM" = "I_ACCEPT_REAL_MONEY_RISK" ]; then
   warn "=============================================="
   warn " LIVE MODE — real orders can be placed."
@@ -301,9 +367,6 @@ fi
 # environment, so a setting that only exists as `TC_TUNNEL=1 bash run.sh` means
 # the app can only be started from a terminal. Put it in .env once and every
 # launcher picks it up.
-env_flag() {
-  grep -E "^$1=" .env 2>/dev/null | head -1 | cut -d= -f2 | tr -d '[:space:]' | cut -d'#' -f1
-}
 : "${TC_LAN:=$(env_flag TC_LAN)}"
 : "${TC_TUNNEL:=$(env_flag TC_TUNNEL)}"
 
@@ -347,7 +410,10 @@ for _ in $(seq 1 60); do
 done
 [ "$backend_up" = 1 ] && ok "backend healthy" || warn "backend did not answer /health in 30s; starting UI anyway"
 
-log "starting frontend on http://${BIND_HOST}:${FRONTEND_PORT}"
+# Only announce the dev server if one is actually going to start. Printing
+# "starting frontend on :5180" and then serving on the backend port instead
+# sends a new user to a dead address.
+[ -z "$USE_BUILT_DASHBOARD" ] && log "starting frontend on http://${BIND_HOST}:${FRONTEND_PORT}"
 if [ -n "$TC_TUNNEL" ]; then
   if ! command -v cloudflared >/dev/null 2>&1; then
     err "TC_TUNNEL=1 needs cloudflared, which is not installed."
@@ -451,6 +517,11 @@ start_frontend() {
     exit 127
   fi
 }
+if [ -n "$USE_BUILT_DASHBOARD" ]; then
+  FRONTEND_PORT="$BACKEND_PORT"
+  ok "$PROJECT_NAME up — dashboard at http://127.0.0.1:${BACKEND_PORT}"
+  log "  (served by the backend; no Node needed on this computer)"
+else
 start_frontend &
 FRONTEND_PID=$!
 
@@ -466,6 +537,7 @@ else
   FRONTEND_PID=""
   warn "frontend did not start — the dashboard is unavailable, but the backend"
   warn "keeps collecting data and trading. npm: $(command -v npm || echo 'NOT FOUND')"
+fi
 fi
 
 # Wait on the BACKEND specifically. The backend is the process that matters; a

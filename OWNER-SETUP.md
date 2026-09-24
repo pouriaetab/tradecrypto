@@ -37,10 +37,16 @@ git init -b main
 
 ```
 git add -A
-git ls-files | grep -iE "\.env$|secrets/|\.sqlite|\.log$|/data/"
+git ls-files | grep -E "^\.env$|^secrets/|^logs/|^data/|\.sqlite"
 ```
 
 **It must print nothing at all.**
+
+The `^` marks mean "starts with", which matters: an earlier version of this
+check used `/data/` and flagged twelve files in `backend/app/data/` — the
+program's own market-data code, which is exactly what should be shared. A
+pattern that matches in the middle of a path will flag source code and hide
+nothing useful.
 
 If it prints anything, stop and ask before continuing — something private is
 staged. Nothing has left your machine yet, so it is fixable.
@@ -126,7 +132,7 @@ Then tell him to run the two lines in **HOW-TO-UPDATE.md**.
 **Run the check from Step 2 before every push**, not just the first one:
 
 ```
-git ls-files | grep -iE "\.env$|secrets/|\.sqlite|\.log$|/data/"
+git ls-files | grep -E "^\.env$|^secrets/|^logs/|^data/|\.sqlite"
 ```
 
 Still must print nothing.

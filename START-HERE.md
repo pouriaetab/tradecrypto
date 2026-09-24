@@ -1,138 +1,135 @@
 # Start here
 
-This is a crypto trading bot with a web page that shows you everything it
-decides and why. **It does not touch real money.** It watches real live prices
-and pretends to trade, so you can see whether it would have worked.
+This is a crypto trading bot with a web page that shows you every decision it
+makes and why. **It does not touch real money.** It watches real live prices and
+pretends to trade, so you can see whether it would have worked.
 
-You need about 10 minutes. Nothing here costs anything and no account is needed.
+**You need about 5 minutes. Nothing costs anything. No account of any kind is
+needed — not Robinhood, not Coinbase, nothing.**
+
+There is one thing to install, and then two lines to paste. That is the whole
+setup.
 
 ---
 
-## Step 1 — Get the two things it needs
+## Step 1 — Install Python
 
-You probably have neither. That is fine.
+This is the only thing you have to install.
 
-**On a Mac**, open the app called **Terminal** (press `Cmd + Space`, type
-`terminal`, press Enter). Copy this whole line, paste it in, press Enter:
+1. Open this page: **https://www.python.org/downloads/**
+2. Click the big yellow **Download Python** button.
+3. Open the file it downloads (it will be in your Downloads folder).
+4. Click **Continue** / **Install** until it finishes. It will ask for your Mac
+   password — that is normal.
 
-```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
+That's it. You never have to think about Python again.
 
-It will ask for your Mac password. Typing it shows nothing on screen — that is
-normal. Press Enter when done. This takes a few minutes.
-
-When it finishes, paste this and press Enter:
-
-```
-brew install python@3.11 node git
-```
-
-**On Windows**, install these two by hand, clicking "next" through both:
-- Python: https://www.python.org/downloads/ — **tick "Add Python to PATH"** on the first screen
-- Node: https://nodejs.org/ — pick the "LTS" button
+> **Already have it?** Fine — doing it again changes nothing.
 
 ---
 
 ## Step 2 — Get the app
 
-In the same Terminal window, paste this one line and press Enter:
+Open the app called **Terminal**: press `Cmd + Space`, type `terminal`, press
+Enter. A white or black window with text appears. That is where the next two
+lines go.
+
+Copy this whole line, paste it into Terminal, press Enter:
 
 ```
 git clone https://github.com/pouriaetab/tradecrypto.git ~/tradecrypto
 ```
 
-This creates the folder for you — do not make it first.
+Three things may happen. All are normal:
 
-**Where does it go?** Into your **home folder**, not your Desktop. It will not
-appear on your Desktop and that is correct. To see it: in Finder, click **Go >
-Home** in the top menu (or press Cmd-Shift-H). The folder `tradecrypto` is there.
+- **A box appears asking to install developer tools** → click **Install**, wait,
+  then paste the line again.
+- **It asks you to sign in to GitHub** → do that.
+- **It prints a few lines ending in `done.`** → it worked.
 
-You do not need to find it in Finder to use it — every step below starts with
-`cd ~/tradecrypto`, which takes Terminal there no matter where you are.
-
-It may ask you to sign in to GitHub. Do that.
+**Where did it go?** Into your **home folder** — not your Desktop. That is
+correct and you do not need to find it. To see it anyway: in Finder, click
+**Go → Home** in the top menu.
 
 ---
 
 ## Step 3 — Turn it on
 
-Paste these three lines, one at a time, pressing Enter after each:
+Paste this one line and press Enter:
 
 ```
-cd ~/tradecrypto
-cp .env.example .env
-./run.sh
+cd ~/tradecrypto && bash run.sh
 ```
 
 The first time takes a few minutes — it is downloading what it needs. Leave the
 window alone until it stops printing.
 
+When it is ready, the last line will say something like:
+
+```
+TradeCrypto up — dashboard at http://127.0.0.1:8006
+```
+
 ---
 
 ## Step 4 — Look at it
 
-Open your browser and go to:
+Open your browser and go to **the address printed in that last line**.
 
-**http://127.0.0.1:5180**
+It is usually one of these two:
 
-That is it. You are running it.
+- **http://127.0.0.1:8006**
+- **http://127.0.0.1:5180**
+
+Use whichever one Terminal printed. That's it — you are running it.
+
+The first few minutes look empty. It is collecting live prices. Within about
+five minutes the **Universe** and **Movers** pages fill with real coins and real
+prices.
 
 ---
 
 ## To stop it
 
-Click on the Terminal window and press `Ctrl + C`. Or:
+Click on the Terminal window and press `Ctrl + C`.
+
+Or, from any Terminal window:
 
 ```
-cd ~/tradecrypto
-./run.sh stop
+cd ~/tradecrypto && bash run.sh stop
 ```
 
 ## To start it again later
 
 ```
-cd ~/tradecrypto
-./run.sh
+cd ~/tradecrypto && bash run.sh
 ```
 
----
-
-## Want it on your phone too?
-
-There is no app to install — you open it in your phone's browser.
-
-Open the file `.env` in the `tradecrypto` folder with TextEdit or Notepad, find
-the line that says `TC_TUNNEL=0`, change it to:
+## To get the owner's latest changes
 
 ```
-TC_TUNNEL=1
+cd ~/tradecrypto && git pull && bash run.sh
 ```
 
-Save the file. Then in Terminal:
-
-```
-brew install cloudflared
-cd ~/tradecrypto
-./run.sh
-```
-
-It will print a web address ending in `.trycloudflare.com`. Open that on your
-phone. It works on cell data, anywhere.
-
-**One rule:** the folder `secrets/` contains a password file that lets your
-phone in. Never send it to anyone and never put it online.
+Your own history is never touched by an update.
 
 ---
 
 ## What to know before you read the numbers
 
 1. **It is pretending.** Real prices, fake money. Nothing can be lost.
-2. **Trading costs about 1.9% per round trip.** Most coins move 2–3% a day, so
-   the bot has to beat that fee before it earns a cent. This is the hard part.
-3. **Your numbers start today.** The app arrives with an empty history. Nothing
-   you see comes from anyone else.
+2. **Trading costs about 1.9% per round trip.** Most coins move 2–3% in a day,
+   so the bot has to beat that fee before it earns a cent. This is the hard
+   part, and the app is honest about it.
+3. **Your numbers start today.** It arrives with an empty history. Nothing you
+   see comes from anyone else.
 4. **It is a research tool**, not advice.
+
+### Your stake
+
+It assumes a pretend $500. To change it, open the file `.env` inside the
+`tradecrypto` folder with TextEdit, find `TC_ACCOUNT_EQUITY=500`, and put your
+own number. Stop and start the app afterwards.
 
 ---
 
@@ -141,10 +138,42 @@ phone in. Never send it to anyone and never put it online.
 Try this first:
 
 ```
-cd ~/tradecrypto
-./run.sh stop
-./run.sh
+cd ~/tradecrypto && bash run.sh stop && bash run.sh
 ```
 
-Still stuck? In the web page, click **Sources** then **events** — it explains
-problems in plain English. Send a screenshot of that.
+If it prints a red line, that line says what to do — they are written in plain
+English, not error codes.
+
+To see a full report of what is and isn't working:
+
+```
+cd ~/tradecrypto && bash run.sh --doctor
+```
+
+Send a screenshot of that. Or in the web page, click **Sources** then
+**events**, which explains problems in plain language.
+
+---
+
+## Optional — on your phone too
+
+Skip this unless you want it. There is no app to install; you open it in your
+phone's browser.
+
+1. Open the file `.env` in the `tradecrypto` folder with TextEdit.
+2. Find the line `TC_TUNNEL=0` and change it to `TC_TUNNEL=1`. Save.
+3. Install the one extra piece this needs. In Terminal:
+
+   ```
+   brew install cloudflared
+   ```
+
+   If that says `command not found: brew`, you need Homebrew first — this is
+   the only genuinely technical part of the whole app, so it is fine to stop
+   here and just use it on your computer.
+
+4. Start the app again. It prints a web address ending in `.trycloudflare.com`.
+   Open that on your phone. It works on cell data, anywhere.
+
+**One rule:** the folder `secrets/` holds a password file that lets your phone
+in. Never send it to anyone and never put it online.
