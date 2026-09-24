@@ -36,12 +36,20 @@ brew install python@3.11 node git
 
 ## Step 2 — Get the app
 
-In the same Terminal window, paste this one line and press Enter. Replace the
-web address with the one you were sent:
+In the same Terminal window, paste this one line and press Enter:
 
 ```
-git clone https://github.com/OWNER/tradecrypto.git ~/tradecrypto
+git clone https://github.com/pouriaetab/tradecrypto.git ~/tradecrypto
 ```
+
+This creates the folder for you — do not make it first.
+
+**Where does it go?** Into your **home folder**, not your Desktop. It will not
+appear on your Desktop and that is correct. To see it: in Finder, click **Go >
+Home** in the top menu (or press Cmd-Shift-H). The folder `tradecrypto` is there.
+
+You do not need to find it in Finder to use it — every step below starts with
+`cd ~/tradecrypto`, which takes Terminal there no matter where you are.
 
 It may ask you to sign in to GitHub. Do that.
 

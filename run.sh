@@ -20,7 +20,8 @@ export BACKEND_PORT FRONTEND_PORT
 # is exactly how the autostart died with "exec: npm: not found". Put the usual
 # install roots back before anything else runs.
 for _d in /opt/homebrew/bin /usr/local/bin "$HOME/.local/bin" "$HOME/Library/pnpm" \
-          "$HOME/.volta/bin" /Library/Frameworks/Python.framework/Versions/3.13/bin \
+          "$HOME/.volta/bin" /Library/Frameworks/Python.framework/Versions/3.14/bin \
+          /Library/Frameworks/Python.framework/Versions/3.13/bin \
           /Library/Frameworks/Python.framework/Versions/3.12/bin \
           /Library/Frameworks/Python.framework/Versions/3.11/bin; do
   [ -d "$_d" ] || continue
@@ -43,6 +44,10 @@ warn() { echo "${YEL}[run.sh]${RESET}: $1" >&2; }
 err()  { echo "${RED}[run.sh]${RESET}: $1" >&2; }
 
 cd "$SCRIPT_DIR"
+# git does not track empty directories, so a FRESH CLONE has no logs/ and no
+# secrets/. The tunnel path then dies on `: > logs/tunnel.log` with "No such
+# file or directory", and set -e takes the whole script down. Make them.
+mkdir -p logs secrets data
 [ -f .env ] || { cp .env.example .env; log "created .env from .env.example"; }
 
 # macOS privacy protection (TCC) applies to ~/Desktop, ~/Documents and ~/Downloads.
@@ -68,7 +73,7 @@ esac
 
 find_python() {
   local c
-  for c in python3.13 python3.12 python3.11 python3; do
+  for c in python3.14 python3.13 python3.12 python3.11 python3; do
     command -v "$c" >/dev/null 2>&1 || continue
     if "$c" -c 'import sys; sys.exit(0 if sys.version_info >= (3,11) else 1)' 2>/dev/null; then
       echo "$c"; return 0
