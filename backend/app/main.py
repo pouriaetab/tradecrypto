@@ -19,6 +19,20 @@ logging.basicConfig(level=getattr(logging, s.log_level.upper(), logging.INFO),
                     format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("tradecrypto")
 
+# QUIET THE HTTP CLIENT. httpx logs one INFO line per request, and the first-boot
+# backfill makes one request per coin: 50 coins x several windows is hundreds of
+# identical "200 OK" lines scrolling past. To anyone who did not write this it
+# reads as a fault -- the app looks stuck in a loop at the exact moment it is
+# working perfectly. The operator watched it happen on 2026-09-24 and asked what
+# was wrong; nothing was.
+#
+# Warnings and errors still come through, so a feed that actually breaks is MORE
+# visible, not less, once it is not buried in successes. TC_LOG_LEVEL=DEBUG
+# brings the detail back when something needs tracing.
+if s.log_level.upper() != "DEBUG":
+    for _noisy in ("httpx", "httpcore", "urllib3"):
+        logging.getLogger(_noisy).setLevel(logging.WARNING)
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     path = db.init_db()
