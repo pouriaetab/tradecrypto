@@ -87,6 +87,19 @@ esac
 
 find_python() {
   local c
+  # ORDER MATTERS, AND NEWEST IS NOT BEST. requirements.txt pins numpy, pandas
+  # and scipy at versions whose PRE-BUILT packages stop at Python 3.13. On 3.14
+  # pip finds no package and quietly starts COMPILING them instead: 30-60
+  # minutes of scrolling text on a laptop, ending in a scipy build failure
+  # because it needs a Fortran compiler that is not there. The install looks
+  # frozen and there is nothing on screen that says why.
+  #
+  # So: prefer the newest interpreter the PINS actually support, and fall back
+  # to a newer one only if nothing else exists. Raise this list when the pins
+  # are raised, not before.
+  # requirements.txt is pinned to versions that have prepared packages for
+  # every Python from 3.11 to 3.14, so newest-first is safe again. The
+  # --only-binary guard below is what catches it if that ever stops being true.
   for c in python3.14 python3.13 python3.12 python3.11 python3; do
     command -v "$c" >/dev/null 2>&1 || continue
     if "$c" -c 'import sys; sys.exit(0 if sys.version_info >= (3,11) else 1)' 2>/dev/null; then
@@ -246,11 +259,24 @@ if ! backend_ready; then
     exit 1
   fi
   log "creating backend venv with $PY ($("$PY" --version 2>&1))…"
-  ( cd backend \
-    && "$PY" -m venv .venv \
-    && .venv/bin/pip install --upgrade pip >/dev/null \
-    && .venv/bin/pip install -r requirements.txt ) \
-    || { err "backend install failed"; exit 1; }
+  ( cd backend && "$PY" -m venv .venv && .venv/bin/pip install --upgrade pip >/dev/null ) \
+    || { err "could not create the Python environment"; exit 1; }
+
+  # PRE-BUILT PACKAGES ONLY, ON THE FIRST ATTEMPT. Without --only-binary, a
+  # missing package is not an error: pip downloads the source and compiles it,
+  # with no warning and no estimate, for the better part of an hour. This turns
+  # that into an immediate, readable failure.
+  if ! ( cd backend && .venv/bin/pip install --only-binary=:all: -r requirements.txt ); then
+    warn ""
+    warn "There are no ready-made packages for $("$PY" --version 2>&1)."
+    warn "Building them from source instead. This can take 30-60 minutes and"
+    warn "may fail. You can press Ctrl+C now and install Python 3.13 instead,"
+    warn "from https://www.python.org/downloads/release/python-3130/ — then"
+    warn "delete the backend/.venv folder and run this again."
+    warn ""
+    ( cd backend && .venv/bin/pip install -r requirements.txt ) \
+      || { err "backend install failed"; exit 1; }
+  fi
   ok "backend dependencies installed"
 fi
 

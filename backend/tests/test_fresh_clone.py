@@ -319,3 +319,75 @@ def test_the_example_settings_have_not_drifted_from_the_real_ones():
         "settings in .env.example that the running app no longer uses -- a new "
         f"install is configured by them and nothing reads them: {dead}"
     )
+
+
+# ── 6. the install must be fast on whatever Python the user happens to have ──
+
+SUPPORTED_PY = ("cp311", "cp312", "cp313", "cp314")
+COMPILED = ("numpy", "pandas", "scipy", "statsmodels", "scikit-learn", "matplotlib")
+
+
+def _pins() -> dict[str, str]:
+    out = {}
+    for line in (ROOT / "backend" / "requirements.txt").read_text().splitlines():
+        line = line.split("#")[0].strip()
+        if "==" in line:
+            name, _, ver = line.partition("==")
+            out[name.split("[")[0].strip().lower()] = ver.strip()
+    return out
+
+
+def test_the_compiled_pins_are_named_versions_not_ranges():
+    """Cheap, offline, and catches the common mistake of loosening a pin."""
+    pins = _pins()
+    for name in COMPILED:
+        if name in pins:
+            assert pins[name][0].isdigit(), f"{name} pin looks wrong: {pins[name]}"
+
+
+@pytest.mark.skipif(
+    os.environ.get("TC_NO_NETWORK_TESTS", "") not in ("", "0"),
+    reason="network tests disabled",
+)
+def test_every_compiled_pin_has_a_prebuilt_package_for_every_supported_python():
+    """The 15-minute silent compile, turned into a 5-second test.
+
+    numpy, pandas and scipy ship as compiled code, built per Python version. A
+    pin with no build for the Python someone has does NOT fail -- pip quietly
+    downloads the source and compiles for the better part of an hour, then dies
+    on scipy for want of a Fortran compiler. The screen just scrolls.
+
+    2026-09-24: numpy 2.2.1 and pandas 2.2.3 stop at Python 3.13. python.org
+    hands new users 3.14. A fresh install sat compiling for over fifteen minutes
+    with nothing on screen explaining it.
+    """
+    import json
+    import urllib.request
+
+    pins = _pins()
+    missing = []
+    for name in COMPILED:
+        ver = pins.get(name)
+        if not ver:
+            continue
+        url = f"https://pypi.org/pypi/{name}/{ver}/json"
+        try:
+            with urllib.request.urlopen(url, timeout=30) as fh:
+                data = json.load(fh)
+        except Exception as exc:  # offline, or PyPI is down: not a code failure
+            pytest.skip(f"could not reach PyPI for {name}: {exc}")
+        have = {
+            tag
+            for f in data.get("urls", [])
+            for tag in SUPPORTED_PY
+            if tag in f["filename"]
+        }
+        if not set(SUPPORTED_PY) <= have:
+            missing.append(
+                f"{name}=={ver} has no prepared package for "
+                f"{sorted(set(SUPPORTED_PY) - have)}"
+            )
+    assert not missing, (
+        "a fresh install on one of these Pythons will COMPILE FROM SOURCE for "
+        "30-60 minutes and probably fail:\n  " + "\n  ".join(missing)
+    )
