@@ -4,7 +4,7 @@
 > built on free public crypto data. The full write-up is in
 > [README.md](README.md); scope and terms are in [DISCLAIMER.md](DISCLAIMER.md).
 >
-> It **cannot place an order** — the broker integration was removed before
+> It **cannot place an order**. The broker integration was removed before
 > publication. It watches real live prices and decides what it *would* do.
 >
 > The strategy does not clear its own cost floor: a round trip costs about 1.9%
@@ -16,15 +16,15 @@ This is a crypto trading bot with a web page that shows you every decision it
 makes and why. **It cannot place an order.** It watches real live prices and
 decides what it would do, so you can see whether it would have worked.
 
-**You need about 5 minutes. Nothing costs anything. No account of any kind is
-needed — not Robinhood, not Coinbase, nothing.**
+**You need about 5 minutes. Nothing costs anything. You do not need an account
+of any kind: not Robinhood, not Coinbase, nothing.**
 
 There is one thing to install, and then two lines to paste. That is the whole
 setup.
 
 ---
 
-## Step 1 — Install Python
+## Step 1. Install Python
 
 This is the only thing you have to install.
 
@@ -32,15 +32,15 @@ This is the only thing you have to install.
 2. Click the big yellow **Download Python** button.
 3. Open the file it downloads (it will be in your Downloads folder).
 4. Click **Continue** / **Install** until it finishes. It will ask for your Mac
-   password — that is normal.
+   password, which is normal.
 
 That's it. You never have to think about Python again.
 
-> **Already have it?** Fine — doing it again changes nothing.
+> **Already have it?** Fine. Doing it again changes nothing.
 
 ---
 
-## Step 2 — Get the app
+## Step 2. Get the app
 
 Open the app called **Terminal**: press `Cmd + Space`, type `terminal`, press
 Enter. A white or black window with text appears. That is where the next two
@@ -59,13 +59,13 @@ Three things may happen. All are normal:
 - **It asks you to sign in to GitHub** → do that.
 - **It prints a few lines ending in `done.`** → it worked.
 
-**Where did it go?** Into your **home folder** — not your Desktop. That is
+**Where did it go?** Into your **home folder** rather than your Desktop. That is
 correct and you do not need to find it. To see it anyway: in Finder, click
 **Go → Home** in the top menu.
 
 ---
 
-## Step 3 — Turn it on
+## Step 3. Turn it on
 
 Paste this one line and press Enter:
 
@@ -73,18 +73,18 @@ Paste this one line and press Enter:
 cd ~/tradecrypto && bash run.sh
 ```
 
-The first time takes a few minutes — it is downloading what it needs. Leave the
+The first time takes a few minutes while it downloads what it needs. Leave the
 window alone until it stops printing.
 
 When it is ready, the last line will say something like:
 
 ```
-TradeCrypto up — dashboard at http://127.0.0.1:8006
+TradeCrypto up. Dashboard at http://127.0.0.1:8006
 ```
 
 ---
 
-## Step 4 — Look at it
+## Step 4. Look at it
 
 Open your browser and go to **the address printed in that last line**.
 
@@ -93,7 +93,7 @@ It is usually one of these two:
 - **http://127.0.0.1:8006**
 - **http://127.0.0.1:5180**
 
-Use whichever one Terminal printed. That's it — you are running it.
+Use whichever one Terminal printed. That's it. You are running it.
 
 The first few minutes look empty. It is collecting live prices. Within about
 five minutes the **Universe** and **Movers** pages fill with real coins and real
@@ -153,8 +153,8 @@ Try this first:
 cd ~/tradecrypto && bash run.sh stop && bash run.sh
 ```
 
-If it prints a red line, that line says what to do — they are written in plain
-English, not error codes.
+If it prints a red line, that line says what to do. These messages are written
+in plain English, not error codes.
 
 To see a full report of what is and isn't working:
 
@@ -171,7 +171,7 @@ Send a screenshot of that. Or in the web page, click **Sources** then
 
 Two ways. The first needs nothing installed.
 
-### Way 1 — at home, on the same wifi (easiest)
+### Way 1. At home, on the same wifi (easiest)
 
 1. Open the file `.env` inside the `tradecrypto` folder. Double-click it; if your
    Mac asks what to open it with, choose **TextEdit**.
@@ -191,24 +191,24 @@ Two ways. The first needs nothing installed.
 5. Near the end it prints something like:
 
    ```
-   phone access is ON — nothing to install
+   phone access is ON, nothing to install
      On your phone, on the same wifi as this Mac, open:
          http://192.168.1.24:8006/?token=a1b2c3...
    ```
 
-6. Type that whole address into your phone's browser — **including the
+6. Type that whole address into your phone's browser. That **includes the
    `?token=...` part**. You only type it once; the phone remembers it.
 7. In Safari, tap **Share -> Add to Home Screen**. It gets its own icon and
    opens like an app.
 
 **Needs:** your phone and this Mac on the same wifi, and this Mac awake with the
-app running. The phone is only a window — the program runs on the Mac.
+app running. The phone is only a window onto the program, which runs on the Mac.
 
 **If the page will not load:** some home wifi, and most hotel and office wifi,
-blocks devices from talking to each other. Nothing in this app can fix that —
+blocks devices from talking to each other. Nothing in this app can fix that, so
 use Way 2.
 
-### Way 2 — anywhere, including cell data
+### Way 2. Anywhere, including cell data
 
 This one needs one extra piece of software, so it is a bit more work.
 
@@ -241,5 +241,5 @@ That address survives app restarts. It only changes if you run
 ### One rule, either way
 
 The folder `secrets/` holds the password file that lets your phone in. Never
-send it to anyone and never put it online — anyone with that link and token can
+send it to anyone and never put it online. Anyone with that link and token can
 see your dashboard.

@@ -5,8 +5,8 @@ product, not a service, not advice.
 
 ## The result is negative, and that is the finding
 
-A round trip costs about **1.9%** — roughly 0.95% each way, taken in the spread
-rather than charged as a fee — while the instruments it watches typically move
+A round trip costs about **1.9%**, roughly 0.95% each way, taken in the spread
+rather than charged as a fee, while the instruments it watches typically move
 **2–3% in a day**. Over a month of replayed real prices the book is down, at
 roughly 40% winners. The cost floor, not the strategy, decides the outcome.
 
@@ -23,6 +23,6 @@ execution modes are `paper` and `advisory`. The reasoning is in
 
 ## Terms
 
-MIT License (see [`LICENSE`](LICENSE)) — provided **"AS IS", without warranty of
+MIT License (see [`LICENSE`](LICENSE)), provided **"AS IS", without warranty of
 any kind**. Nothing here is financial advice or a recommendation to buy, sell or
 hold anything; the author is not a financial adviser and is not acting as one.

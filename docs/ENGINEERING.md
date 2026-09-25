@@ -21,12 +21,12 @@ actually done in this codebase, and here is what the field calls it.
 
 Every section has the same six parts:
 
-1. **The name** — formal designation and the standard it comes from
-2. **The procedure** — numbered steps, the way the method is actually run
-3. **Applied here** — the real file, the real code, the real incident
-4. **What it catches** — the failure it is built to detect
-5. **The threshold** — the acceptance criterion, and where the number came from
-6. **The honest limit** — what this does *not* establish
+1. **The name.** Formal designation and the standard it comes from
+2. **The procedure.** Numbered steps, the way the method is actually run
+3. **Applied here.** The real file, the real code, the real incident
+4. **What it catches.** The failure it is built to detect
+5. **The threshold.** The acceptance criterion, and where the number came from
+6. **The honest limit.** What this does *not* establish
 
 Part 6 is not modesty. It is the part that makes the other five believable, and
 in an interview it is usually the part that gets remembered. See
@@ -36,14 +36,14 @@ in an interview it is usually the part that gets remembered. See
 
 An automated crypto trading system and its transparency dashboard: 116 Python
 modules, 59 test files, 548 test functions, ~50
-instruments on a 15-second poll. The system's headline result is negative — the
-strategy does not clear its own transaction-cost floor — which is why the
+instruments on a 15-second poll. The system's headline result is negative. The
+strategy does not clear its own transaction-cost floor, which is why the
 measurement apparatus is the interesting part rather than the strategy.
 
 ---
 
 <details>
-<summary><b>1 · Test design and categorization</b> — ISO/IEC/IEEE 29119-4:2021</summary>
+<summary><b>1 · Test design and categorization</b> · ISO/IEC/IEEE 29119-4:2021</summary>
 
 ### The name
 
@@ -58,27 +58,27 @@ instead of "I should probably write more tests".
 
 ### The procedure
 
-1. **Pick the test basis** — the thing you are deriving tests *from*. A
+1. **Pick the test basis.** This is the thing you are deriving tests *from*: a
    requirement, a specification, an interface, a piece of code, an incident
    report. If you cannot name the basis, you are writing tests from vibes.
 2. **Choose the technique** that fits the basis:
-   - **Equivalence partitioning** — split the input space into classes where
-     every member should behave the same, then test one member per class.
-   - **Boundary value analysis** — test the edges of each class, because that
+   - **Equivalence partitioning.** Split the input space into classes whose
+     members should all behave the same, then test one member per class.
+   - **Boundary value analysis.** Test the edges of each class, because that
      is where off-by-one and comparison-operator defects live.
-   - **Decision table testing** — for logic with several interacting
+   - **Decision table testing.** Use it for logic with several interacting
      conditions; enumerate the combinations and their expected outcomes.
-   - **State transition testing** — for anything with modes; test the legal
-     transitions *and* the illegal ones.
-   - **Combinatorial / pairwise** — when the full cross-product is too large,
+   - **State transition testing.** Use it for anything with modes, and test
+     the legal transitions *and* the illegal ones.
+   - **Combinatorial / pairwise.** When the full cross-product is too large,
      cover every *pair* of parameter values instead.
-   - **Error guessing** — deliberate, experience-driven attacks on where this
+   - **Error guessing.** Deliberate, experience-driven attacks on where this
      kind of system usually breaks.
 3. **Derive test cases** and record which technique produced each one.
-4. **Assign a coverage item** to each — the specific partition, boundary, rule
-   or transition the case covers.
+4. **Assign a coverage item** to each case: the specific partition, boundary,
+   rule or transition it covers.
 5. **Measure coverage** against those items, not against lines of code.
-6. **Record the residual** — the coverage items you chose not to cover, and why.
+6. **Record the residual.** Coverage items you chose not to cover, and why.
 
 ### Applied here
 
@@ -89,10 +89,10 @@ different classes of defect:
 |---|---|---|
 | Behavioural unit and integration tests | ~39 files | Ordinary specification-based tests over functions and modules |
 | **Architectural fitness functions** | **20 files** | Tests that read the *source* with `inspect.getsource` and assert structural properties |
-| Data-driven (`parametrize`) | 8 files | One test body, many input classes — equivalence partitioning made literal |
+| Data-driven (`parametrize`) | 8 files | One test body over many input classes, which is equivalence partitioning made literal |
 | Isolation (`monkeypatch`) | 22 files | Dependencies replaced so the unit under test is genuinely alone |
 | Filesystem-isolated (`tmp_path`) | 5 files | Anything touching the database or vault, on a private copy |
-| Process-level (`subprocess`) | 4 files | The install, the clone, the day boundary — tested as a user meets them |
+| Process-level (`subprocess`) | 4 files | Install, clone and day boundary tested the way a user meets them |
 
 The second row is the unusual one and the one worth being able to explain. An
 **architectural fitness function** (the term is Ford, Parsons & Kua's) is a test
@@ -114,11 +114,11 @@ def test_the_split_is_by_time_and_never_shuffled():
         assert bad not in code, f"{bad} in the split destroys the time ordering"
 ```
 
-The defect it targets — shuffling a price series before a train/validate split —
-produces **no failing output at all**. The model trains, scores well, and every
-number downstream is inflated by temporal leakage. There is no assertion on a
-return value that can catch it, because the return value looks *better* when the
-bug is present. So the test asserts on the shape of the code instead.
+The defect it targets is shuffling a price series before a train/validate split,
+and it produces **no failing output at all**. The model trains, scores well, and
+every number downstream is inflated by temporal leakage. There is no assertion
+on a return value that can catch it, because the return value looks *better*
+when the bug is present. So the test asserts on the shape of the code instead.
 
 Note the comment in the middle. An earlier version of this test searched for the
 bare word `shuffle` and failed on the module's own sentence explaining why it
@@ -133,7 +133,7 @@ control here that can be moved while the system runs, so its partition edges
 covered as well as the write path, because a bound enforced only on input is one
 hand-edited row away from not existing.
 
-A second instance, from the model arena — the control entrant:
+A second instance comes from the model arena and its control entrant:
 
 ```python
 def test_the_control_alone_cannot_be_a_champion(monkeypatch):
@@ -151,7 +151,7 @@ has inverted, and this test is the thing that says so.
 ### What it catches
 
 - Defects that produce **better-looking output**, which no output assertion can find
-- Structural regressions — someone "simplifies" the split to `train_test_split`
+- Structural regressions, e.g. someone "simplifies" the split to `train_test_split`
 - Off-by-one and comparison errors at partition edges
 - Illegal state transitions, e.g. a retired strategy re-entering the book
 
@@ -163,7 +163,7 @@ operative rule is stated in `test_fresh_clone.py`: the existing suite tested
 walks**. So the acceptance criterion for this repository is:
 
 > Every failure that has ever reached a user has a test that reproduces it, and
-> that test exercises the path at the level the user met it — process level if
+> that test exercises the path at the level the user met it: process level if
 > they met it at a terminal, data level if they met it on a dashboard.
 
 Line coverage is deliberately not a target. A suite can hit 90% of lines and
@@ -178,7 +178,7 @@ still never ask whether a closed trade points at the order that closed it.
 - **No API-level integration tests.** No FastAPI `TestClient` anywhere. Routes
   are tested through their handler functions, so the wiring between HTTP layer
   and handler is unverified.
-- Architectural fitness functions are **brittle by nature** — they break on
+- Architectural fitness functions are **brittle by nature**. They break on
   refactors that are correct. That is a real cost, accepted deliberately here
   because the defects they catch are silent.
 
@@ -187,7 +187,7 @@ still never ask whether a closed trade points at the order that closed it.
 ---
 
 <details>
-<summary><b>2 · Data-quality validation</b> — post-conditions on a running system</summary>
+<summary><b>2 · Data-quality validation</b> · post-conditions on a running system</summary>
 
 ### The name
 
@@ -209,7 +209,7 @@ The second kind catches a class the first kind structurally cannot.
    the orders that opened and closed it?"
 2. **Name the bug it would have caught.** If you cannot, the invariant is
    decorative.
-3. **Set a severity** — is a violation broken, or a warning?
+3. **Set a severity.** Is a violation broken, or a warning?
 4. **Run it on a schedule, not only in the test suite.** This is the step people
    skip and it is the whole point; see below.
 5. **Land results in an event log** and surface them in the interface.
@@ -256,9 +256,9 @@ def _result(name: str, question: str, ok: bool, detail: str,
             n_bad: int = 0, n_total: int = 0) -> dict:
 ```
 
-`would_have_caught` is a required argument. A test enforces that every invariant
-supplies a real one — `test_every_invariant_declares_what_it_would_have_caught`
-— so the registry cannot silently accumulate checks nobody can justify.
+`would_have_caught` is a required argument, so the registry cannot silently
+accumulate checks nobody can justify. Enforcing that is the job of a test named
+`test_every_invariant_declares_what_it_would_have_caught`.
 
 One invariant in full:
 
@@ -282,7 +282,7 @@ def trades_link_to_orders() -> dict:
 Note `_salvaged_ids()`. Four trades were recovered from a corrupted database
 with their orders permanently destroyed. They can never satisfy this invariant.
 Rather than weaken the check or let it alarm forever, the exception is **named,
-enumerated and declared** — which is what `known_gaps_are_declared` polices.
+enumerated and declared**. Policing that is what `known_gaps_are_declared` does.
 
 ### What it catches
 
@@ -323,7 +323,7 @@ scheme invites arguing about the middle.
 ---
 
 <details>
-<summary><b>3 · Risk management</b> — ISO 31000:2018 and IEC 31010:2019</summary>
+<summary><b>3 · Risk management</b> · ISO 31000:2018 and IEC 31010:2019</summary>
 
 ### The name
 
@@ -332,8 +332,8 @@ assessment techniques from IEC 31010:2019 *Risk assessment techniques*.
 
 The single most common interview mistake here is to use "risk" to mean "bad
 thing that might happen". ISO 31000 defines risk as **the effect of uncertainty
-on objectives** — which means you cannot talk about risk until you have stated
-the objective. That definition is the whole reason the process starts where it
+on objectives**. You cannot talk about risk until you have stated the
+objective, and that definition is the whole reason the process starts where it
 does.
 
 ### The procedure
@@ -344,8 +344,8 @@ does.
 2. **Risk identification.** What could affect the objective? Techniques from
    IEC 31010: structured what-if, checklists, failure analysis, scenario
    analysis.
-3. **Risk analysis.** Likelihood and consequence, and — the step usually
-   skipped — the *interactions* between risks.
+3. **Risk analysis.** Likelihood and consequence, and, the step usually
+   skipped, the *interactions* between risks.
 4. **Risk evaluation.** Compare analysed risk against the criteria from step 1.
    Decide: acceptable, treat, or escalate.
 5. **Risk treatment.** ISO 31000 lists the options explicitly: avoid it, take
@@ -353,16 +353,16 @@ does.
    likelihood, change the consequence, share it, or **retain it by informed
    decision**. That last one is a legitimate treatment, and naming it correctly
    is what separates a considered decision from an unmanaged exposure.
-6. **Monitoring and review**, and **recording and reporting** — continuous, not
-   terminal.
+6. **Monitoring and review**, and **recording and reporting**, both continuous
+   rather than terminal.
 
 ### Applied here
 
-**Step 1 — the criterion, set before measuring.** The objective is to grow a
+**Step 1 sets the criterion before measuring.** The objective is to grow a
 small book without a single day that ends the experiment. The criterion was
 first a fixed daily loss cap, and it was wrong in an instructive way.
 
-**Step 4 — evaluation, which found the criterion itself defective.** From
+**Step 4 is evaluation, and it found the criterion itself defective.** From
 `backend/tests/test_book_risk_ceiling.py`:
 
 > Was the daily cap for one day; at $60 it refused 32 entries with 11 positions.
@@ -371,7 +371,7 @@ A cap that refuses thirty-two entries is not protecting the book, it is
 preventing the strategy from existing. The control was measured and found to
 be mis-specified.
 
-**Step 5 — treatment, changed.** The fixed cap was replaced by a **drawdown
+**Step 5 changed the treatment.** The fixed cap was replaced by a **drawdown
 budget: 10% of equity, less today's realised loss**. The control now scales with
 the thing it protects instead of being a number someone typed once.
 
@@ -385,12 +385,12 @@ Read that as a risk-management finding rather than a user complaint. **A control
 that is overridden nine times in four hours has already failed as a control.**
 The override was a two-minute pause, so the operator had to keep re-making the
 same decision, and the record showed nine events where there had been one
-decision. The treatment: make the release an explicit, *day-scoped* acceptance —
-one decision, recorded once, not re-litigated every two minutes. That is ISO
-31000's "retain by informed decision", built as code.
+decision. The treatment was to make the release an explicit, *day-scoped*
+acceptance: one decision, recorded once, not re-litigated every two minutes.
+That is ISO 31000's "retain by informed decision", built as code.
 
-**Step 3 — interaction between risks, which is where most position-sizing goes
-wrong.** Eleven open positions look like eleven independent bets. Measured
+**Step 3 covers interaction between risks, which is where most position-sizing
+goes wrong.** Eleven open positions look like eleven independent bets. Measured
 pairwise correlation across the book was **+0.43**, and the standard adjustment
 
 ```
@@ -405,7 +405,7 @@ factor of five.
 ### What it catches
 
 - Controls that are mis-specified rather than merely mis-tuned
-- Silent acceptance — an exposure being run without anyone having decided to run it
+- Silent acceptance, where an exposure is run without anyone deciding to run it
 - Correlated exposure presented as diversification
 - Thresholds that drifted because nobody recorded why they were set
 
@@ -414,7 +414,7 @@ factor of five.
 | Control | Value | Where the number came from |
 |---|---|---|
 | Book drawdown budget | 10% of equity, less today's realised | Replaced a fixed $60 cap that refused 32 of 43 entries |
-| Daily loss limit, operator-settable | 0.5%–50% of stake | Bounds, not a value: 0% halts on the first cent; too large is not a stop. Enforced on read *and* write — `test_daily_limit_bounds.py` |
+| Daily loss limit, operator-settable | 0.5%–50% of stake | Bounds, not a value: 0% halts on the first cent; too large is not a stop. Enforced on read *and* write by `test_daily_limit_bounds.py` |
 | Regime size multiplier | capped ×1.5 / ×0.5 | A router that can size to zero or to the moon is not a router |
 | Per-coin cost hurdle | per-instrument, not a global 240 bps | BTC's own round trip is nearer 80 bps; the global prior rejected viable trades |
 | Minimum trades before the lab acts | `MIN_TRADES = 15` | Below this it records but does not act |
@@ -438,7 +438,7 @@ operator cannot change gets bypassed in ways you never see.
 ---
 
 <details>
-<summary><b>4 · Hazard analysis, fault trees, and defence in depth</b> — IEC 61025, STPA, LOPA</summary>
+<summary><b>4 · Hazard analysis, fault trees, and defence in depth</b> · IEC 61025, STPA, LOPA</summary>
 
 ### The name
 
@@ -458,20 +458,20 @@ whether any *single* failure can cause it. That is exactly the question below.
 
 1. **Define the top event precisely.** "The system fails" is not a top event.
    "A day of trades is permanently unrecoverable" is.
-2. **Identify the immediate, necessary and sufficient causes** of the top event
-   — one level only. Resist jumping to root causes.
+2. **Identify the immediate, necessary and sufficient causes** of the top event.
+   Go one level only, and resist jumping to root causes.
 3. **Connect them with logic gates.** `AND` when all are required; `OR` when any
    one suffices. This is the step that carries all the information.
 4. **Decompose each intermediate event** the same way, recursively.
-5. **Stop at basic events** — failures you will not decompose further, either
-   because they are primitive or because you have data at that level.
-6. **Derive the minimal cut sets** — the smallest sets of basic events whose
-   joint occurrence causes the top event. A cut set of size 1 is a **single
-   point of failure**.
+5. **Stop at basic events.** These are failures you will not decompose further,
+   either because they are primitive or because you have data at that level.
+6. **Derive the minimal cut sets.** These are the smallest sets of basic events
+   whose joint occurrence causes the top event. A cut set of size 1 is a
+   **single point of failure**.
 7. **Evaluate.** Qualitatively, rank cut sets by order (smaller = worse).
    Quantitatively, if you have credible failure rates, compute top-event
-   probability. *Without credible rates, stop at qualitative — a fabricated
-   number is worse than no number.*
+   probability. *Without credible rates, stop at qualitative, because a
+   fabricated number is worse than no number.*
 8. **Treat** by breaking cut sets: add a barrier, or remove a shared cause.
 
 ### Applied here
@@ -507,7 +507,7 @@ flowchart TD
     G1 --> I3 --> B3
 ```
 
-**Step 6 — the minimal cut set.** There is exactly one, and it has order 3:
+**Step 6 gives the minimal cut set.** There is exactly one, and it has order 3:
 
 ```
 { BE1 AND BE2 AND BE3 }
@@ -520,10 +520,10 @@ That single line is the entire analytical payoff, and it says two things at once
 - **Breaking any one link prevents the whole event.** You do not have to fix all
   three. You have to guarantee that at least one can never hold.
 
-**Step 8 — treatment.** Rather than pick one, all three were broken, and the
-structure of the test file follows the structure of the tree — *one test class
-per basic event*, stated in the header as: "One test class each. If any of these
-ever goes red, the same day repeats."
+**Step 8 is treatment.** Rather than pick one, all three were broken, and the
+structure of the test file follows the structure of the tree, with *one test
+class per basic event*, stated in the header as: "One test class each. If any of
+these ever goes red, the same day repeats."
 
 Then a fourth measure changed the tree's shape rather than its leaves. The
 **vault** (`test_vault.py`) is a write-once copy of every order and trade, held
@@ -533,14 +533,14 @@ one:
 
 > 100% is not a promise you make, it is two mechanisms.
 
-With the vault present, the cut set becomes order 4 — the vault must *also*
-fail. **Raising the order of the minimal cut set is what "defence in depth"
-means quantitatively**, and it is a far better sentence in an interview than
-"we added backups".
+With the vault present, the cut set becomes order 4, because the vault must
+*also* fail. **Raising the order of the minimal cut set is what "defence in
+depth" means quantitatively**, and it is a far better sentence in an interview
+than "we added backups".
 
 **Barrier independence, which is where defence in depth usually fails.** Layers
-only add protection if they fail independently. BE1's root cause — SQLite
-locking not crossing a bridge mount — would have hit *any* barrier stored inside
+only add protection if they fail independently. BE1's root cause was SQLite
+locking that does not cross a bridge mount, and that would have hit *any* barrier stored inside
 that same file. The vault is protective specifically because it is outside. A
 "second copy" in the same database is not a second barrier; it is the same
 barrier drawn twice. This system's own `conftest.py` records the matching
@@ -561,7 +561,7 @@ lesson for the test suite:
 
 Qualitative, and deliberately so. **No top-event probability is computed**,
 because there is no credible failure-rate data for any of the three basic
-events — one occurrence each is not a rate. The acceptance criterion is
+events. One occurrence each is not a rate. The acceptance criterion is
 structural:
 
 > No minimal cut set of order 1 for any top event that loses operator data. Every
@@ -590,7 +590,7 @@ number would not be.
 ---
 
 <details>
-<summary><b>5 · Verification and validation planning</b> — IEEE Std 1012-2024</summary>
+<summary><b>5 · Verification and validation planning</b> · IEEE Std 1012-2024</summary>
 
 ### The name
 
@@ -598,9 +598,9 @@ number would not be.
 and Validation*. Two words that are routinely used as one and mean different
 things:
 
-- **Verification** — are we building the product *right*? Does the
+- **Verification.** Are we building the product *right*? Does the
   implementation conform to its specification?
-- **Validation** — are we building the *right product*? Does it meet the actual
+- **Validation.** Are we building the *right product*? Does it meet the actual
   need in the actual operating environment?
 
 A system can pass verification completely and fail validation completely. This
@@ -621,23 +621,23 @@ this section exists.
 4. **Define the V&V effort per lifecycle phase**, including inputs, tasks and
    required outputs.
 5. **Execute, and record anomalies** against the item that failed.
-6. **Report** — a V&V summary stating what was verified, what was validated, and
+6. **Report.** A V&V summary stating what was verified, what was validated, and
    what was neither.
 
 ### Applied here
 
-**Step 1 — integrity level, honestly.** This system moves no real money in its
-published form and has no safety consequence. On IEEE 1012's scale it is
+**Step 1 sets the integrity level, honestly.** This system moves no real money
+in its published form and has no safety consequence. On IEEE 1012's scale it is
 **low integrity**. Saying so matters: claiming a high integrity level for a
 personal trading project is the fastest way to lose an interviewer's trust, and
 the method is worth exactly as much when applied honestly at level 1.
 
-**Verification — passed.** 591 collected test cases, 569 passing, 22 skipped
+**Verification passed.** 591 collected test cases, 569 passing, 22 skipped
 (they require a live database). The implementation conforms to its
 specification: gates fire when they should, invariants hold, the day boundary is
 defined once, the vault captures every order.
 
-**Validation — failed, and measured.** The objective was to grow a small book.
+**Validation failed, and was measured.** The objective was to grow a small book.
 The measured result:
 
 | Quantity | Value |
@@ -645,9 +645,9 @@ The measured result:
 | Round-trip transaction cost | ≈1.90% (0.95% per side, taken in the spread) |
 | Typical daily range of the instruments | 2–3% |
 | Best exit rule found, over 106 trades | +0.61% per trade |
-| Hindsight ceiling — best possible exit, known after the fact | +7.53% per trade |
+| Hindsight ceiling, the best possible exit known after the fact | +7.53% per trade |
 | Model arena leader | AUC 0.786, bootstrap CI [0.40, 1.00] |
-| Champion promoted | **None** — the interval does not clear 0.50 |
+| Champion promoted | **None**, because the interval does not clear 0.50 |
 
 The system does what it was specified to do. What it was specified to do does
 not clear its own cost floor. **That is the distinction between verification and
@@ -657,12 +657,12 @@ example than any definition.
 The validation machinery is separate from the verification machinery, which is
 the design point:
 
-- `research/model_arena.py` — several models per strategy, time-ordered
+- `research/model_arena.py` runs several models per strategy, a time-ordered
   train/validate split, a **no-variable control model** in every field, bootstrap
   confidence intervals, champion only if the interval clears chance
-- `test_exit_lab_absorb.py` — every exit rule judged against what the desk
+- `test_exit_lab_absorb.py` judges every exit rule against what the desk
   actually booked, not against one rule declared "live"
-- `test_exit_trend.py` — records that at 32 closed trades, the lab's own bar
+- `test_exit_trend.py` records that at 32 closed trades, the lab's own bar
   (`MIN_FOR_A_VERDICT = 40`) has not been met, and declines to conclude
 
 That last one is the habit worth naming: **the apparatus refuses to return a
@@ -671,7 +671,7 @@ short of.
 
 ### What it catches
 
-- A correct implementation of a bad idea — invisible to any amount of testing
+- A correct implementation of a bad idea, which no amount of testing can see
 - Metrics that look like validation but are verification in disguise ("all tests
   pass" says nothing about whether the strategy works)
 - Conclusions drawn from sample sizes that cannot support them
@@ -680,10 +680,10 @@ short of.
 
 | Gate | Criterion |
 |---|---|
-| Model promoted to champion | Bootstrap CI on AUC must clear 0.50 — point estimate is never sufficient |
+| Model promoted to champion | Bootstrap CI on AUC must clear 0.50, since a point estimate is never sufficient |
 | Model fitted at all | ≥ `MIN_TRADES = 15` outcomes |
 | Model width | ≥ `ROWS_PER_FEATURE = 10` outcomes per variable, or flagged thin |
-| Variable admitted | present on ≥ 95% of rows — a column missing half the time is imputed noise |
+| Variable admitted | present on ≥ 95% of rows, because a column missing half the time is imputed noise |
 | Strategy verdict | ≥ `MIN_FOR_A_VERDICT = 40` closed trades |
 | Strategy acted on by the lab | ≥ `MIN_TRADES = 15`; below this it records but does not act |
 
@@ -707,14 +707,14 @@ says the honest answer is "we do not know", and the code refuses the promotion.
 ---
 
 <details>
-<summary><b>6 · Requirements traceability</b> — bidirectional, and back to outcomes</summary>
+<summary><b>6 · Requirements traceability</b> · bidirectional, and back to outcomes</summary>
 
 ### The name
 
 **Traceability**: the ability to follow a thread from a stated need, through
-design and implementation, to the test that demonstrates it — and back. When it
-works in both directions it is called **bidirectional traceability**, and the
-two directions catch different things:
+design and implementation, to the test that demonstrates it, and back again.
+When it works in both directions it is called **bidirectional traceability**,
+and the two directions catch different things:
 
 - *Forward* (need → test) finds **untested requirements**
 - *Backward* (code → need) finds **orphan code**: things built that nobody asked
@@ -723,8 +723,8 @@ two directions catch different things:
 ### The procedure
 
 1. **Give every requirement a stable identifier.**
-2. **Link forward** — requirement → design element → code → test case.
-3. **Link backward** — every code element traces to a requirement, or is flagged
+2. **Link forward.** Requirement → design element → code → test case.
+3. **Link backward.** Every code element traces to a requirement, or is flagged
    as an orphan.
 4. **Maintain a coverage matrix** and check both directions.
 5. **Extend it to outcomes** in any system that learns from its own results:
@@ -733,8 +733,8 @@ two directions catch different things:
 
 ### Applied here
 
-The requirements are unusual in form — they are the operator's sentences, quoted
-verbatim — but they behave as requirements, and they are traced.
+The requirements are unusual in form. They are the operator's sentences, quoted
+verbatim, but they behave as requirements, and they are traced.
 
 **Requirement → test.** Test docstrings carry the originating statement and its
 date. From `test_sizing_rules.py`:
@@ -772,21 +772,21 @@ Three ideas stacked:
 1. Every outcome carries the identity of the configuration that produced it
    (`params c3ba79714a` appears in the sizing tests). Without this, a learner
    trains on outcomes from rules that no longer exist.
-2. The discount is **proportional to how different the superseded rule was** —
-   a cosmetic change should not invalidate its trades, a structural one should.
+2. The discount is **proportional to how different the superseded rule was**.
+   A cosmetic change should not invalidate its trades, a structural one should.
 3. A **stability report** says when the discount can stop, so the decay has a
    defined end rather than running forever.
 
 That is traceability used as an input to a learning system, not as documentation.
 
 **Orphan detection.** `test_studied_roster.py` exists because retiring one
-strategy "silently stopped SIX daily research paths" — a backward-traceability
-failure, where removing a node broke dependents nobody had mapped.
+strategy "silently stopped SIX daily research paths". Removing that node broke
+dependents nobody had mapped, which is a backward-traceability failure.
 
 ### What it catches
 
-- Requirements with no test — the classic forward gap
-- Code nobody asked for — the backward gap
+- Requirements with no test at all, the classic forward gap
+- Code nobody asked for, which is the backward gap
 - Learners training on outcomes from rules that no longer exist
 - Dependents silently orphaned when a node is retired
 
@@ -817,14 +817,14 @@ this project does not have one.
 ---
 
 <details>
-<summary><b>7 · FRACAS</b> — Failure Reporting, Analysis and Corrective Action System</summary>
+<summary><b>7 · FRACAS</b> · Failure Reporting, Analysis and Corrective Action System</summary>
 
 ### The name
 
-**FRACAS** — a *closed-loop* failure management system. Reference: MIL-HDBK-2155,
-*Failure Reporting, Analysis and Corrective Action Taken* (a handbook, not a
-requirements standard — worth saying, because misciting it as a standard is a
-tell).
+**FRACAS** is a *closed-loop* failure management system. Reference:
+MIL-HDBK-2155, *Failure Reporting, Analysis and Corrective Action Taken* (a
+handbook, not a requirements standard, which is worth saying because misciting
+it as a standard is a tell).
 
 "Closed-loop" is the load-bearing word. The loop is not closed when the fix
 ships. It is closed when the **effectiveness of the fix has been verified**.
@@ -844,24 +844,24 @@ is long-standing across editions; cite the current one.)
 Most engineers do corrections and call them corrective actions. Being able to
 say which one you did, and show the difference, is a strong signal.
 
-(**Preventive action** — acting on a *potential* nonconformity that has not
-occurred — is the third term. Two things people get wrong about it: the 2015
-revision of ISO 9001 folded preventive action into its risk-based-thinking
+(The third term is **preventive action**, which means acting on a *potential*
+nonconformity that has not occurred. Two things people get wrong about it: the
+2015 revision of ISO 9001 folded preventive action into its risk-based-thinking
 clauses rather than keeping it as a separate requirement, and **"CAPA" is FDA
 21 CFR 820.100 language, not ISO 9001 wording**. Using "CAPA" in a
 quality-management interview and attributing it to ISO is a common tell.)
 
 ### The procedure
 
-1. **Detect and report** — capture the failure with enough context to reproduce.
-2. **Reproduce** — an unreproduced failure cannot be verified as fixed.
-3. **Classify** — severity, affected function, whether it was silent.
-4. **Analyse the cause** — the actual mechanism, not the first plausible story.
+1. **Detect and report.** Capture the failure with enough context to reproduce.
+2. **Reproduce.** An unreproduced failure cannot be verified as fixed.
+3. **Classify** by severity, affected function, and whether it was silent.
+4. **Analyse the cause.** The actual mechanism, not the first plausible story.
 5. **Ask whether the cause is an instance of a class**, and if so, **search for
    the other instances**. This is the step that separates the two terms above.
 6. **Take corrective action** on the class.
-7. **Verify effectiveness** — normally by a test that fails before and passes
-   after.
+7. **Verify effectiveness.** Normally this is a test that fails before and
+   passes after.
 8. **Close**, and **trend** across incidents to find systemic patterns.
 
 ### Applied here
@@ -872,20 +872,20 @@ report database that cannot drift from the code, because it *is* the code.
 
 | Date | Failure | Corrective action, and the test that verifies it |
 |---|---|---|
-| 2026-09-18 | Database destroyed; 5-hour crash loop beside a valid backup | Three test classes, one per basic event — `test_db_safety.py` (38 cases) |
+| 2026-09-18 | Database destroyed; 5-hour crash loop beside a valid backup | Three test classes, one per basic event, in `test_db_safety.py` (38 cases) |
 | 2026-09-18 | Four trade row ids handed out twice after restore | `test_trade_recovery.py` |
-| 2026-09-18 | LaunchAgent plist unparseable — a double hyphen inside an XML comment | `test_launch_agent.py` |
+| 2026-09-18 | LaunchAgent plist unparseable after a double hyphen inside an XML comment | `test_launch_agent.py` |
 | 2026-09-18 | Position sized over $1k; target over $2 on a ~$0.21 coin | `test_risk_sizing.py` |
-| 2026-09-19 | Liquidity gate compared two hand-written numbers | Gate derived from the order actually placed — `test_liquidity_gate.py` |
-| 2026-09-19 | Daily tab said 7 trades / +$36.73; the Journal said 8 / +$42.29 | Rebuild on late arrival — `test_daily_report_staleness.py` |
+| 2026-09-19 | Liquidity gate compared two hand-written numbers | Gate derived from the order actually placed, verified by `test_liquidity_gate.py` |
+| 2026-09-19 | Daily tab said 7 trades / +$36.73; the Journal said 8 / +$42.29 | Rebuild on late arrival, in `test_daily_report_staleness.py` |
 | 2026-09-21 | A test tripped the **desk's** kill switch | `test_kill_switch_isolation.py` |
-| 2026-09-21 | `/mode` took 27 s; one engine tick took 365 s | Shared scans — `test_polled_routes_share_scans.py` |
-| 2026-09-22 | Every day-by-day table shifted five hours | One definition of "today" — `test_day_boundary.py` |
+| 2026-09-21 | `/mode` took 27 s; one engine tick took 365 s | Shared scans, in `test_polled_routes_share_scans.py` |
+| 2026-09-22 | Every day-by-day table shifted five hours | One definition of "today", in `test_day_boundary.py` |
 | 2026-09-22 | Position size shrank because the universe grew 33 → 75 coins | `test_sizing_not_activity_linked.py` |
 | 2026-09-22 | Retiring one strategy silently stopped six research paths | `test_studied_roster.py` |
 | 2026-09-24 | Fresh database failed on its first tick | `test_fresh_install.py` |
 
-**Step 5, worked through — the example to tell.**
+**Step 5 worked through, and it is the example to tell.**
 
 A test failed with this:
 
@@ -900,9 +900,9 @@ assert PosixPath('/var/folders/.../KILL_SWITCH')
   the same file had two names, and any code asking "is this path inside the
   project?" could get a confident wrong answer.
 - **The class**: that is a *path-comparison* defect. This project had already
-  shipped one — a vault-independence check using `str.startswith` decided that
-  `~/tradecrypto-vault` was inside `~/tradecrypto`.
-- **The search**: the same idiom appeared in **three** properties — the
+  shipped one, where a vault-independence check using `str.startswith` decided
+  that `~/tradecrypto-vault` was inside `~/tradecrypto`.
+- **The search**: the same idiom appeared in **three** properties, namely the
   database path, the credentials path, and the kill-switch path. Two of them had
   not failed yet.
 - **The corrective action**: one `_project_path()` helper that always returns a
@@ -913,13 +913,13 @@ assert PosixPath('/var/folders/.../KILL_SWITCH')
 
 One failure, one fix, three defects removed, two of which had never fired.
 
-**Trend analysis — step 8, which found the largest pattern.** Reading across the
+**Trend analysis at step 8 found the largest pattern.** Reading across the
 incidents, `test_fresh_clone.py` names it:
 
 > the existing suite tests FUNCTIONS
 
-Every failure that reached a user was in the path a *user walks* — cloning,
-installing, first run, first tick — not in a function's return value. The
+Every failure that reached a user was in the path a *user walks*: cloning,
+installing, first run, first tick, rather than in a function's return value. The
 corrective action for the trend was a whole test file operating at process
 level. It is also how the executable-bit defect was found: eight files beginning
 `#!` were recorded in git as `100644`, so a fresh clone would hand a new user
@@ -927,7 +927,7 @@ scripts that cannot run.
 
 ### What it catches
 
-- Recurrence — the same defect class reappearing in a new location
+- Recurrence of a defect class in a new location
 - Latent instances of a known class that have not fired yet
 - Systemic patterns invisible from any single incident
 - Fixes that were never verified to work
@@ -948,8 +948,8 @@ a bug tracker with extra ceremony.
 - **No formal closure record.** Closure is implicit in the test existing; nobody
   signs anything.
 - Detection still depends heavily on the operator noticing something wrong on a
-  dashboard. Several incidents above were found by a human looking at a screen,
-  not by a monitor — which is why §2's invariants were moved onto a schedule.
+  dashboard. Several incidents were found by a human looking at a screen rather
+  than by a monitor, which is why §2's invariants were moved onto a schedule.
 
 </details>
 
@@ -960,21 +960,21 @@ a bug tracker with extra ceremony.
 Each section is deliberately structured so that the six parts can be spoken in
 order. The shape that works is:
 
-1. **Name the method.** "That's hazard analysis — specifically fault tree
+1. **Name the method.** "That's hazard analysis. Specifically fault tree
    analysis, which is the top-down one."
 2. **State the procedure in three or four steps**, not nine. Enough to show it
    is a method, not a story.
 3. **Give the concrete instance.** One system, one top event, the real numbers.
 4. **State the limit before you are asked.** "This was one top event, analysed
-   after the fact by its author — the method is real, the dataset behind it is
+   after the fact by its author. The method is real, the dataset behind it is
    one occurrence per event."
 
 Step 4 is counter-intuitive and does the most work. An engineer who volunteers
 the boundary of their own claim is read as someone whose other claims can be
 taken at face value.
 
-The same content mapped into other domains' vocabulary — automotive, aerospace,
-manufacturing, and financial model risk — is in [`METHOD.md` §9](METHOD.md). The
+The same content mapped into other domains' vocabulary (automotive, aerospace,
+manufacturing, and financial model risk) is in [`METHOD.md` §9](METHOD.md). The
 claims this project does **not** support are in [`METHOD.md` §11](METHOD.md), and
 that list is worth reading before using any of this.
 

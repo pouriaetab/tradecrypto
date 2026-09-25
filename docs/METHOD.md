@@ -3,8 +3,8 @@
 ## Why this document exists
 
 There is a specific failure that costs people interviews. You do a piece of
-work, it feels obvious while you are doing it, so you describe it plainly —
-*"I checked the trades matched the signals"* — and the interviewer hears
+work, it feels obvious while you are doing it, so you describe it plainly as
+*"I checked the trades matched the signals"*, and the interviewer hears
 housekeeping. Someone else does the identical thing and says *"I implemented
 end-to-end traceability between decision records and execution records, with
 automated invariant checks and a defined escalation path"*, and the interviewer
@@ -14,9 +14,9 @@ Both sentences describe the same code. Only one of them is recognised.
 
 This document takes each part of this project and writes it three ways:
 
-1. **The named process** — what the discipline calls it, with the current
+1. **The named process.** What the discipline calls it, with the current
    standard.
-2. **The steps** — the canonical sequence, numbered, so it can be walked
+2. **The steps.** The canonical sequence, numbered, so it can be walked
    through out loud.
 3. **What was actually done here**, with real numbers, so every step has a
    concrete example behind it.
@@ -37,18 +37,18 @@ not change. Only the nouns do.
 
 Two live frames, and they answer different questions.
 
-**HARA** — Hazard Analysis and Risk Assessment, the automotive frame from
+**HARA** is Hazard Analysis and Risk Assessment, the automotive frame from
 ISO 26262:2018. Asks: *for each hazardous event, how bad, how often, how
 avoidable?* Output is an integrity level and a safety goal.
 
-**STPA** — Systems-Theoretic Process Analysis (Leveson & Thomas, *STPA
+**STPA** is Systems-Theoretic Process Analysis (Leveson & Thomas, *STPA
 Handbook*, 2018). Asks: *what control action, in what context, would be unsafe?*
 Built for software-intensive and autonomous systems where the hazard is not a
 component breaking but a controller doing the wrong correct-looking thing. This
 is the frame that fits a statistical decision pipeline, and it is the one worth
 leading with for autonomy roles.
 
-### 1.2 The steps — STPA
+### 1.2 The steps: STPA
 
 1. **Define losses and system-level hazards.** What outcome is unacceptable?
 2. **Build the control structure.** Controllers, actuators, sensors, and the
@@ -57,7 +57,7 @@ leading with for autonomy roles.
    ways it can be unsafe: provided when it should not be; not provided when it
    should be; provided too early/late/out of order; stopped too soon or applied
    too long.
-4. **Identify loss scenarios.** Why would that UCA occur — bad process model,
+4. **Identify loss scenarios.** Why would that UCA occur? Bad process model,
    bad feedback, missing input?
 5. **Derive requirements and constraints** that eliminate or control each
    scenario.
@@ -92,9 +92,9 @@ The 17 gates: `kill_switch`, `daily_loss_cap`, `max_drawdown`,
 | Exit not taken as odds decay | Braking not initiated as TTC decreases | Go-around not initiated as approach destabilises | Line not stopped as SPC drift grows |
 | Correlated positions counted as independent | Redundant sensors sharing a common failure mode | Redundant channels on one power bus | Parallel lines sharing one calibration source |
 
-**The sentence:** *"I used an STPA-style frame — control structure, unsafe
-control actions, loss scenarios — and turned each unsafe control action into an
-enforced pre-trade constraint. There are seventeen of them, each records its
+**The sentence:** *"I used an STPA-style frame of control structure, unsafe
+control actions and loss scenarios, and turned each unsafe control action into
+an enforced pre-trade constraint. There are seventeen of them, each records its
 limit and its reading, and a separate liveness check confirms whether each one
 has ever actually fired."*
 
@@ -104,20 +104,20 @@ has ever actually fired."*
 
 ### 2.1 The named process
 
-**ISO 31000:2018 — Risk management — Guidelines.** Note the title: the 2009
+**ISO 31000:2018**, *Risk management — Guidelines*. Note the title: the 2009
 edition was *"Principles and guidelines"*, and using that phrasing marks a stale
 citation. ISO 31000 is guidance and is **not certifiable**. Techniques live in
-**IEC 31010:2019 — Risk management — Risk assessment techniques**, which is
+**IEC 31010:2019**, *Risk management — Risk assessment techniques*, which is
 where bow-tie analysis is formally described.
 
 ### 2.2 The steps
 
-1. **Scope, context, criteria** — what is in scope and what counts as
+1. **Scope, context, criteria.** What is in scope and what counts as
    acceptable.
 2. **Risk identification.**
-3. **Risk analysis** — likelihood and consequence.
-4. **Risk evaluation** — compare against criteria; decide what needs treating.
-5. **Risk treatment** — avoid, reduce, transfer, or accept.
+3. **Risk analysis** of likelihood and consequence.
+4. **Risk evaluation** against the criteria, deciding what needs treating.
+5. **Risk treatment** by avoiding, reducing, transferring or accepting.
 6. **Monitoring and review.**
 7. **Recording and reporting.**
 8. Throughout: **communication and consultation.**
@@ -145,7 +145,7 @@ where bow-tie analysis is formally described.
 ### 2.4 The domain swap
 
 Residual risk after treatment, monitored continuously, with a defined
-escalation — that structure is identical whether the consequence is money, a
+escalation. That structure is identical whether the consequence is money, a
 collision, a hull loss or a recall. **The registers differ; the process does
 not.**
 
@@ -162,16 +162,16 @@ around instead of changing."*
 
 ### 3.1 The named process
 
-**IEEE Std 1012-2024 — IEEE Standard for System, Software, and Hardware
-Verification and Validation.** Two cautions: it supersedes 1012-2016, and since
-2016 the title covers system, software *and hardware* — calling it "the software
-V&V standard" dates you.
+**IEEE Std 1012-2024**, *IEEE Standard for System, Software, and Hardware
+Verification and Validation*. Two cautions: it supersedes 1012-2016, and since
+2016 the title covers system, software *and hardware*, so calling it "the
+software V&V standard" dates you.
 
 The distinction, stated the way it is usually asked:
 
-- **Verification** — are we building the thing right? Does the implementation
+- **Verification.** Are we building the thing right? Does the implementation
   meet the specification?
-- **Validation** — are we building the right thing? Does it meet the need in the
+- **Validation.** Are we building the right thing? Does it meet the need in the
   operating environment?
 
 **Integrity levels** drive how much V&V rigour is required.
@@ -184,11 +184,11 @@ The distinction, stated the way it is usually asked:
 4. Validate against operational need in the intended environment.
 5. Maintain **bidirectional traceability**.
 6. Report anomalies and manage them to closure.
-7. Re-verify after change — regression.
+7. Re-verify after change, which is regression.
 
 ### 3.3 What this project did
 
-**Verification** — does the code do what the design says?
+**Verification.** Does the code do what the design says?
 - 541 automated tests across 58 files.
 - 15 data invariants asserting structural properties, e.g.
   `trades_link_to_orders`, `orders_link_to_signals`,
@@ -197,11 +197,11 @@ The distinction, stated the way it is usually asked:
   failure where a `NameError` inside a broad `try/except` meant a feature wrote
   nothing and nothing ever failed.
 
-**Validation** — does the thing meet the need?
+**Validation.** Does the thing meet the need?
 - The need was a positive expected return after costs. It does not meet it.
   **That finding is the validation result**, and reporting it is the point.
 
-**Traceability** — the chain is enforced, not documented:
+**Traceability.** The chain is enforced rather than documented:
 `signal → order → order → trade`, with features attached to the signal, so any
 closed trade reaches the exact inputs that produced it. When that link broke,
 every downstream learner was training on nothing while the system reported that
@@ -215,7 +215,7 @@ learning was enabled. It is now an invariant.
 | P&L decomposes | Measured output reconciles with its components |
 | Prices on screen are fresh | Displayed telemetry is within its staleness budget |
 
-**The sentence:** *"Verification was automated invariants and a test suite —
+**The sentence:** *"Verification was automated invariants and a test suite of
 five hundred-odd tests, fifteen structural invariants, and enforced bidirectional
 traceability from decision record to execution record. Validation was against
 the operational need, and it failed: the system does not clear its own
@@ -227,31 +227,31 @@ transaction cost. I reported that rather than re-tuning until it looked better."
 
 ### 4.1 The named process
 
-**ISO/IEC/IEEE 29119 — Software and systems engineering — Software testing.**
+**ISO/IEC/IEEE 29119**, *Software and systems engineering — Software testing*.
 Five normative parts: **-1:2022** general concepts, **-2:2021** test processes,
 **-3:2021** test documentation, **-4:2021** test techniques, **-5:2024**
-keyword-driven testing. Plus **ISO/IEC TR 29119-11:2020 — Testing of AI-based
-systems**, which is directly on point and few candidates have heard of it.
+keyword-driven testing. Plus **ISO/IEC TR 29119-11:2020**, *Testing of AI-based
+systems*, which is directly on point and few candidates have heard of it.
 
 ### 4.2 The steps
 
-1. **Test strategy** — risk-based prioritisation.
-2. **Test planning** — levels: unit, integration, system, acceptance.
-3. **Test design** — techniques: equivalence partitioning, boundary value
+1. **Test strategy**, meaning risk-based prioritisation.
+2. **Test planning** across levels: unit, integration, system, acceptance.
+3. **Test design** using techniques: equivalence partitioning, boundary value
    analysis, decision tables, state transition, pairwise.
-4. **Test oracles** — how you know the answer is right. The hard part for any
+4. **Test oracles.** How you know the answer is right. The hard part for any
    statistical system.
 5. **Adequacy criteria / coverage.**
 6. **Execution, incident reporting, regression.**
 
-### 4.3 What this project did — the oracle problem, worked
+### 4.3 What this project did: the oracle problem, worked
 
 A statistical system has no ground-truth oracle: you cannot assert the model
 "should" have produced 0.6. So the oracles are **properties**, not values:
 
 | oracle type | example here |
 |---|---|
-| **Metamorphic** | Halving the size multiplier must halve the notional — caught a cap binding asymmetrically |
+| **Metamorphic** | Halving the size multiplier must halve the notional; this caught a cap binding asymmetrically |
 | **Invariant** | Every closed trade reaches its features |
 | **Statistical control** | A model with no variables must score AUC 0.500 |
 | **Regression on a known incident** | Each of the failure-log entries has a test that reproduces it |
@@ -263,18 +263,18 @@ A statistical system has no ground-truth oracle: you cannot assert the model
 - Partitions: below minimum / valid / above maximum
 - Boundaries: 0.4, **0.5**, 50, 50.1
 - Expected: refusal with a reason / accept / accept / refusal with a reason
-- The refusal explains itself — *"0% is a halt on the first small loss"*,
-  *"80% is not a cap at all"* — because a silent clamp teaches the operator the
-  control does not work.
+- The refusal explains itself, saying *"0% is a halt on the first small loss"*
+  or *"80% is not a cap at all"*, because a silent clamp teaches the operator
+  the control does not work.
 
 **Regression discipline.** Most of the 541 tests exist because something broke.
 Each encodes symptom → root cause → the check that now catches it. Examples:
 
-- A rate tuned on hourly bars applied per tick — the live loop ran 60× faster
+- A rate tuned on hourly bars was applied per tick. The live loop ran 60× faster
   than the backtest, and every test passed because the tests also walked bars.
-- Git cannot store an empty directory — the launcher died on a fresh clone at a
-  path present on every developer machine.
-- A string prefix is not a parent directory — a correctly-placed audit log
+- Git cannot store an empty directory, so the launcher died on a fresh clone at
+  a path present on every developer machine.
+- A string prefix is not a parent directory, and a correctly-placed audit log
   reported itself compromised.
 - Sample data with backdated timestamps aged every "has this run lately" check,
   so a five-minute-old install accused itself.
@@ -286,7 +286,7 @@ you cannot enumerate correct outputs, so you assert properties, use metamorphic
 relations, and build scenario regression from real incidents. That is the same
 answer for a trading model and a pedestrian detector.
 
-**The sentence:** *"The hard part was the oracle problem — there is no ground
+**The sentence:** *"The hard part was the oracle problem. There is no ground
 truth to assert against, so the tests assert properties instead: metamorphic
 relations, structural invariants, and a statistical control that must score
 exactly at chance. Everything else is regression built from real incidents, one
@@ -298,13 +298,13 @@ test per incident, each naming the root cause."*
 
 ### 5.1 The named process
 
-- **ISO/IEC 25010:2023 — SQuaRE — Product quality model.** Revised in 2023:
+- **ISO/IEC 25010:2023**, *SQuaRE — Product quality model*. Revised in 2023:
   **nine** characteristics, not the eight people still quote, and *Safety* is
   now one of them. *Usability* became *Interaction capability*; *Portability*
   became *Flexibility*. Quality-in-use moved to ISO/IEC 25019:2023.
-- **ISO 9001:2026 — Quality management systems — Requirements.** ISO 9001:2015
+- **ISO 9001:2026**, *Quality management systems — Requirements*. ISO 9001:2015
   was **withdrawn on 16 September 2026**. Citing 2015 as current is a tell.
-- **FRACAS** — Failure Reporting, Analysis and Corrective Action System.
+- **FRACAS** is the Failure Reporting, Analysis and Corrective Action System.
   Originates in MIL-STD-2155(AS) (1985), superseded by the handbook
   MIL-HDBK-2155 (1995). It is a *closed-loop* process: a failure is not closed
   until the corrective action is verified effective.
@@ -313,15 +313,15 @@ test per incident, each naming the root cause."*
   action"*; the separate preventive-action clause was deliberately removed in
   2015 and replaced by risk-based thinking. Do not attribute CAPA to ISO 9001.
 
-### 5.2 The steps — closed-loop corrective action
+### 5.2 The steps: closed-loop corrective action
 
 1. **Detect and report** the failure.
-2. **Contain** — stop the bleeding.
-3. **Analyse root cause** — 5 Whys, fishbone, fault tree. (No governing
+2. **Contain** it, and stop the bleeding.
+3. **Analyse root cause** with 5 Whys, fishbone, fault tree. (No governing
    standard for 5 Whys or 8D; 8D originated at Ford as TOPS in 1987. Bow-tie is
    described in IEC 31010:2019. Say "technique", not "standard".)
-4. **Corrective action** — fix this occurrence.
-5. **Preventive/systemic action** — stop the class recurring.
+4. **Corrective action** fixes this occurrence.
+5. **Preventive/systemic action** stops the class recurring.
 6. **Verify effectiveness.**
 7. **Close, and feed back into the process.**
 
@@ -333,20 +333,20 @@ now catches it. That is FRACAS structure, applied to a personal codebase.
 
 A worked example, end to end:
 
-1. **Detect** — a fresh install compiled dependencies for 15+ minutes and failed.
-2. **Contain** — stopped the install.
-3. **Root cause** — a missing binary wheel is *not an error*: pip silently
+1. **Detect.** A fresh install compiled dependencies for 15+ minutes and failed.
+2. **Contain.** Stopped the install.
+3. **Root cause.** A missing binary wheel is *not an error*: pip silently
    builds from source. The pinned versions had no build for the interpreter the
    installer selected.
-4. **Corrective** — repinned to versions with prepared builds for every
+4. **Corrective.** Repinned to versions with prepared builds for every
    supported interpreter.
-5. **Preventive** — made the first install attempt binary-only, so a future gap
+5. **Preventive.** Made the first install attempt binary-only, so a future gap
    fails in seconds with a readable message instead of an hour of silence.
-6. **Verify effectiveness** — install time measured at **~30 seconds**.
-7. **Systemic** — the first fix checked six packages *by name*; the next failure
+6. **Verify effectiveness.** Install time measured at **~30 seconds**.
+7. **Systemic.** The first fix checked six packages *by name*; the next failure
    was a transitive dependency nobody lists. The check now resolves the **whole
    dependency graph** across four interpreter versions and two CPU
-   architectures — 8 combinations.
+   architectures, or 8 combinations.
 
 That last step is the interview-worthy part: **the first corrective action was
 insufficient, the class recurred, and the fix was generalised.** Saying that out
@@ -363,12 +363,12 @@ loud demonstrates closed-loop thinking better than any success story.
 | Maintainability | 58 test files; incident-linked comments naming the failure each guard prevents |
 | Interaction capability | The transparency UI |
 
-**The sentence:** *"I ran a closed-loop corrective action process — FRACAS in
-shape if not in name. Every defect gets root cause, a corrective action, and a
-preventive action at the class level, and it isn't closed until the preventive
-action is verified. One of them I got wrong the first time: I fixed the instance
-and the class recurred, so the second fix generalised the check across the whole
-dependency graph."*
+**The sentence:** *"I ran a closed-loop corrective action process that was
+FRACAS in shape if not in name. Every defect gets root cause, a corrective
+action, and a preventive action at the class level, and it isn't closed until
+the preventive action is verified. One of them I got wrong the first time: I
+fixed the instance and the class recurred, so the second fix generalised the
+check across the whole dependency graph."*
 
 ---
 
@@ -376,12 +376,12 @@ dependency graph."*
 
 ### 6.1 The steps
 
-1. **Ingestion** — source, protocol, cadence, failover.
-2. **Validation at the boundary** — reject bad input before it becomes state.
-3. **Storage and schema** — normalisation, keys, indices, retention.
-4. **Feature computation** — derived variables, causality constraints.
-5. **Serving** — what the consumer reads, and how fresh it must be.
-6. **Observability** — freshness, completeness, drift.
+1. **Ingestion.** Source, protocol, cadence, failover.
+2. **Validation at the boundary**, rejecting bad input before it becomes state.
+3. **Storage and schema.** Normalisation, keys, indices, retention.
+4. **Feature computation** of derived variables, under causality constraints.
+5. **Serving.** What the consumer reads, and how fresh it must be.
+6. **Observability** of freshness, completeness and drift.
 
 ### 6.2 What this project did, with numbers
 
@@ -390,7 +390,7 @@ dependency graph."*
 | Ingestion | Public REST endpoints, **Coinbase primary with Kraken failover**, ~**50 instruments**, hourly bars plus live quotes, **15-second** loop |
 | Boundary validation | A `feed_cross_check` gate compares sources; a `prices_on_screen_are_fresh` invariant enforces a staleness budget |
 | Schema | **15 base tables, 132 columns**; `bars` keyed on (symbol, granularity, timestamp, source) so the same bar from two feeds cannot collide |
-| Feature computation | Signal features written at decision time and frozen. Range lookbacks use `ts < ?` — **strictly before** — so a feature can never read the bar it is predicting |
+| Feature computation | Signal features written at decision time and frozen. Range lookbacks use `ts < ?`, which is **strictly before**, so a feature can never read the bar it is predicting |
 | Reference data | A conditional survival table over **4.9M historical observations**, mapping (target ÷ hourly range, hours elapsed, current P&L) → probability the target is still reached |
 | Serving | REST, ~**198 routes**; the UI polls with per-endpoint intervals tuned to how fast each figure changes |
 | Efficiency | Shared TTL cache on hot reads because every open tab polls the same status route; per-phase tick timing instrumented, so a slow tick can be attributed to feed, strategy or database |
@@ -423,7 +423,7 @@ the odds estimate is built from 4.9 million historical observations."*
 ### 7.1 The steps
 
 1. **Define the target** and the unit of observation.
-2. **Split** — and for time series, split by time.
+2. **Split**, remembering that a time series splits by time.
 3. **Fit competing candidates**, including a null model.
 4. **Score on held-out data** with uncertainty, not a point estimate.
 5. **Decide** against a pre-declared rule.
@@ -433,8 +433,8 @@ the odds estimate is built from 4.9 million historical observations."*
 ### 7.2 What this project did
 
 1. Target: did the position close profitable **after costs**.
-2. Split: oldest 70% train, newest 30% held out, read once. Never shuffled — a
-   test asserts no shuffle call exists in the split path.
+2. Split: oldest 70% train, newest 30% held out, read once. Never shuffled, and
+   a test asserts no shuffle call exists in the split path.
 3. Five entrants: all variables; all variables heavily regularised; strongest
    five refitted; single best variable; **and a model with no variables at all**.
 4. Held-out AUC with a bootstrap confidence interval, plus Brier and log-loss.
@@ -448,8 +448,8 @@ the odds estimate is built from 4.9 million historical observations."*
 
 **Why the null model matters.** Without a variable-free entrant in the table,
 the best of five uninformative models reads as a winner. The control scores
-0.500 by construction, so anything that cannot beat it has learned nothing — and
-that fact is only visible if it is on the page.
+0.500 by construction, so anything that cannot beat it has learned nothing. That
+fact is only visible if it is on the page.
 
 **The sentence:** *"Five candidate models per strategy, including a null model
 as a control, split by time and scored on held-out data with bootstrap
@@ -461,8 +461,8 @@ unless its interval clears chance. The leader scored 0.786 with an interval from
 
 ## 8. Lifecycle and traceability
 
-**ISO/IEC/IEEE 15288:2023 — Systems and software engineering — System life cycle
-processes.** Supersedes the 2015 edition.
+**ISO/IEC/IEEE 15288:2023**, *Systems and software engineering — System life
+cycle processes*. Supersedes the 2015 edition.
 
 The chain here is enforced in the schema rather than kept in a document:
 
@@ -491,7 +491,7 @@ traceability" means when it is real rather than a spreadsheet.
 | Day stop | Kill switch, daily loss limit | Operational limit / ODD boundary | Envelope limit | Andon stop |
 | Cost hurdle | Transaction cost analysis; implementation shortfall | Minimum performance margin | Required safety margin | Process capability index |
 | Correlated positions | Concentration / factor exposure | Common-cause sensor failure | Shared bus / common mode | Shared calibration source |
-| Liveness check | Control testing — has the limit ever bound? | Has the fallback ever engaged? | Has the monitor ever tripped? | Has the interlock ever fired? |
+| Liveness check | Control testing. Has the limit ever bound? | Has the fallback ever engaged? | Has the monitor ever tripped? | Has the interlock ever fired? |
 | Failure log | Incident and near-miss reporting | Incident database | Occurrence reporting | Nonconformance log |
 | Model arena | Challenger model, benchmarking (SR 26-2) | Perception model selection | Algorithm qualification | Gauge R&R / method comparison |
 
@@ -501,36 +501,36 @@ A trading firm, an exchange or a bank is the one audience for whom the second
 column is not a translation. There the vocabulary is already fixed, and it is
 worth using exactly:
 
-- **Model risk** — under the Federal Reserve's **SR 26-2** (17 April 2026),
-  which replaced SR 11-7 (2011) and SR 21-8, and was issued jointly with **OCC
-  Bulletin 2026-13** and an FDIC FIL — is "the potential for adverse financial
-  consequences associated with models, which may result from decisions made
-  based on model output." A *model* is "a complex quantitative method, system,
-  or approach that applies statistical, economic, or financial theories to
-  process input data into quantitative estimates."
-- **Effective challenge** — "the critical analysis conducted by objective
-  experts who evaluate model risk and effect appropriate changes throughout the
-  model lifecycle" — is the load-bearing term. It is what §7 of this document
-  describes: a no-variable control model in every field, a champion refused
-  when its bootstrap interval fails to clear chance, and a strategy retired on
-  its own evidence.
+- **Model risk** is defined by the Federal Reserve's **SR 26-2** (17 April
+  2026), which replaced SR 11-7 (2011) and SR 21-8 and was issued jointly with
+  **OCC Bulletin 2026-13** and an FDIC FIL. The definition: "the potential for
+  adverse financial consequences associated with models, which may result from
+  decisions made based on model output." A *model* is "a complex quantitative
+  method, system, or approach that applies statistical, economic, or financial
+  theories to process input data into quantitative estimates."
+- **Effective challenge** is the load-bearing term, defined as "the critical
+  analysis conducted by objective experts who evaluate model risk and effect
+  appropriate changes throughout the model lifecycle". It is what §7 of this
+  document describes: a no-variable control model in every field, a champion
+  refused when its bootstrap interval fails to clear chance, and a strategy
+  retired on its own evidence.
 - **The three validation elements** survive the revision unchanged:
   *conceptual soundness*, *ongoing monitoring*, *outcomes analysis*. They map
   one-to-one onto §7's split discipline, §3's liveness checks and §6's
   ledger-versus-outcome reconciliation.
-- **Pre-trade risk controls** under **SEC Rule 15c3-5** — the market access
-  rule, still a FINRA examination priority in its 2026 oversight report —
+- **Pre-trade risk controls** under **SEC Rule 15c3-5**, the market access rule,
   require controls that reject erroneous orders and enforce credit and capital
-  thresholds *before* the order reaches the venue. That is the gate chain, and
+  thresholds *before* the order reaches the venue. It is still a FINRA
+  examination priority in its 2026 oversight report. That is the gate chain, and
   it is the same shape: seventeen named refusals, each of which must say which
   one fired.
 
 Two cautions. SR 26-2 is expected to be "most relevant to banking
 organizations with over $30 billion in total assets," so it is a vocabulary and
-a frame rather than a rule that binds a personal project — say so before
-someone else does. And it explicitly places generative and agentic AI outside
-its scope, which is a distinction worth knowing when the conversation turns to
-LLM governance.
+a frame rather than a rule that binds a personal project. Say so before someone
+else does. And it explicitly places generative and agentic AI outside its scope,
+which is a distinction worth knowing when the conversation turns to LLM
+governance.
 
 The honest positioning for this audience is **validation, not alpha**. The
 project's result is that the strategy does not clear its own cost floor. Anyone
@@ -550,15 +550,15 @@ vehicles."*
 
 ## 10. Answering the question out loud
 
-A repeatable four-beat structure. It stops the two common failures — trailing
-off after one sentence, and narrating chronologically for five minutes.
+A repeatable four-beat structure. It stops the two common failures, which are
+trailing off after one sentence and narrating chronologically for five minutes.
 
-1. **Name the process.** *"That's hazard analysis — I used an STPA-style frame."*
+1. **Name the process.** *"That's hazard analysis. I used an STPA-style frame."*
 2. **Give the steps.** *"Control structure, unsafe control actions, loss
    scenarios, derived constraints, verification."*
 3. **Give one concrete example with a number.** *"One unsafe control action was
    an order placed while the day's loss budget was exhausted. That became an
-   enforced gate — one of seventeen — and each records its limit and its
+   enforced gate, one of seventeen, and each records its limit and its
    reading."*
 4. **Say what it cost or caught.** *"A separate liveness check asks whether each
    safeguard has ever actually fired, because a trailing stop was reported as

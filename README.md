@@ -3,9 +3,9 @@
 **A working system, and a negative result.**
 
 A research desk that watches live market data, decides what it *would* trade,
-and renders its entire reasoning chain — candidate generation, feature weighting,
-competing models, held-out validation, and every risk gate — in a live operator
-interface. It cannot place an order; the broker integration was removed before
+and renders its entire reasoning chain in a live operator interface: candidate
+generation, feature weighting, competing models, held-out validation, and every
+risk gate. It cannot place an order; the broker integration was removed before
 publication.
 
 ---
@@ -16,28 +16,28 @@ I cannot publish my previous employer's data, and I do not have access to yours.
 So this is the alternative: find a domain with a free, high-volume, continuously
 updating public data feed, and build the engineering around it in the open.
 
-Crypto is the cleanest such feed available — no credentials, no licence, no
-vendor relationship, roughly fifty instruments quoting twenty-four hours a day.
-It was chosen for **data availability and nothing else**. Nothing in this project
-depends on the domain being finance; the same apparatus would sit on sensor
-telemetry, manufacturing yield, or claims data with the nouns changed
-(see [`docs/METHOD.md` §9](docs/METHOD.md)).
+Crypto is the cleanest such feed available. It needs no credentials, no licence
+and no vendor relationship, and roughly fifty instruments quote twenty-four
+hours a day. It was chosen for **data availability and nothing else**. Nothing
+in this project depends on the domain being finance; the same apparatus would
+sit on sensor telemetry, manufacturing yield, or claims data with the nouns
+changed (see [`docs/METHOD.md` §9](docs/METHOD.md)).
 
 **The trading is the substrate. The engineering is the subject.** What is being
 demonstrated is:
 
-- a **test suite** derived from real failures rather than from imagined ones —
-  59 files, 548 test functions, each traceable to the incident that caused it
-- **quality assurance and control at the data layer** — fifteen invariants that
-  ask whether the running system's output is true of the world, not whether the
-  code compiles
-- **transparent statistical validation** — held-out splits, a no-variable
-  control model, bootstrap confidence intervals, and **stated acceptance
-  criteria that are enforced in code**, including the criterion that refused to
-  promote this system's own best model
-- an explicit account of **what happens when the program misbehaves** — hazard
-  analysis, fault trees over incidents that actually occurred, and the gates and
-  invariants that now stand where each one got through
+- a **test suite** derived from real failures rather than imagined ones, 59
+  files and 548 test functions, each traceable to the incident that caused it
+- **quality assurance and control at the data layer**, carried by fifteen
+  invariants that ask whether the running system's output is true of the world,
+  not whether the code compiles
+- **transparent statistical validation** built from held-out splits, a
+  no-variable control model, bootstrap confidence intervals, and **stated
+  acceptance criteria that are enforced in code**, including the criterion that
+  refused to promote this system's own best model
+- an explicit account of **what happens when the program misbehaves**, covering
+  hazard analysis, fault trees over incidents that actually occurred, and the
+  gates and invariants that now stand where each one got through
 
 The method, written out step by step in the vocabulary each engineering field
 uses for it, is in **[`docs/ENGINEERING.md`](docs/ENGINEERING.md)**.
@@ -52,20 +52,20 @@ not a measurement apparatus.
 
 Statistical and machine-learning decision pipelines are conventionally opaque at
 runtime. Their validation lives in notebooks, their model selection in
-experiment logs, and their guard conditions in code — none of it visible to the
-person accountable for the system while it is running. The literature has
+experiment logs, and their guard conditions in code. None of it is visible to
+the person accountable for the system while it is running. The literature has
 addressed this from two directions that do not meet: **transparency artifacts**
 (model cards, datasheets, FactSheets) are offline documents authored once
 [1,2,3], and **runtime monitoring** is machine-facing telemetry designed to
 trigger alerts rather than to be reasoned about [12,13,29].
 
-This project takes the position that the assurance argument itself — *why this
-decision, on what evidence, with which checks passed* — should be a live,
-inspectable interface. It implements that for a complete decision pipeline over
-public cryptocurrency market data: 6 strategies, ~50 instruments, a five-entrant
-model competition scored on held-out data, and an ordered pre-trade gate chain,
-all continuously exposed through a UI organised along the three levels of the
-Situation-awareness-based Agent Transparency model [23].
+This project takes the position that the assurance argument itself should be a
+live, inspectable interface, answering *why this decision, on what evidence,
+with which checks passed*. It implements that for a complete decision pipeline
+over public cryptocurrency market data: 6 strategies, ~50 instruments, a
+five-entrant model competition scored on held-out data, and an ordered pre-trade
+gate chain, all continuously exposed through a UI organised along the three
+levels of the Situation-awareness-based Agent Transparency model [23].
 
 The measured result for the trading task is **negative and reported as such**.
 Round-trip cost on the venue studied is ~1.90% against a typical daily range of
@@ -79,19 +79,19 @@ that establishes this reliably rather than the strategies it evaluates.
 
 Each part of this system is a named engineering process with a canonical
 sequence of steps. **[docs/METHOD.md](docs/METHOD.md)** sets out those steps
-explicitly — hazard analysis (STPA and HARA), risk management (ISO 31000),
+explicitly: hazard analysis (STPA and HARA), risk management (ISO 31000),
 verification and validation (IEEE 1012-2024), test engineering
 (ISO/IEC/IEEE 29119), quality and closed-loop corrective action, the data
-pipeline, and model validation — and maps each step onto what was actually done
-here, with the measured numbers.
+pipeline, and model validation. It then maps each step onto what was actually
+done here, with the measured numbers.
 
 **[docs/ENGINEERING.md](docs/ENGINEERING.md)** is the worked companion to that
-map. Seven techniques — test design, data-quality validation, risk management,
-fault tree analysis, V&V planning, traceability and FRACAS — each with its
-numbered procedure, the real code in this repository that implements it, the
-threshold it is judged against, and an explicit statement of what it does *not*
-establish. It is written to be useful to anyone who has built something
-substantial and cannot yet name the methods they used.
+map. Seven techniques appear there: test design, data-quality validation, risk
+management, fault tree analysis, V&V planning, traceability and FRACAS. Each
+carries its numbered procedure, the real code in this repository that implements
+it, the threshold it is judged against, and an explicit statement of what it
+does *not* establish. It is written to be useful to anyone who has built
+something substantial and cannot yet name the methods they used.
 
 It also gives the **domain swap**: the same step with the subject changed from
 market data to vehicles, aircraft, robots or a production line. The method does
@@ -112,12 +112,12 @@ failure modes, and they are opposite:
 Both are documented consequences of poorly calibrated automation transparency
 [20,21]. Lee and See's synthesis makes the mechanism explicit: appropriate
 reliance depends on the operator being able to see the automation's **purpose,
-process and performance** [20]. Absent that, trust is not calibrated — it is
+process and performance** [20]. Absent that, trust is not calibrated. It is
 merely high or low.
 
 This is sharper for statistical pipelines than for deterministic control, for
 the reason ISO 21448 (SOTIF) exists [15]: the hazard is not component failure
-but **functional insufficiency** — the system operating exactly as specified and
+but **functional insufficiency**, the system operating exactly as specified and
 still being wrong, because the specification or the fitted model did not cover
 the situation. A fault-based safety frame such as ISO 26262 [16] does not reach
 that class of hazard, and no amount of road-style accumulation testing resolves
@@ -131,44 +131,44 @@ document written once and a log nobody opens.
 
 ## 2. Related work, and the gap
 
-### 2.1 Transparency artifacts — right content, wrong tense
+### 2.1 Transparency artifacts: right content, wrong tense
 
 Model Cards [1] standardise what must be disclosed about a trained model:
 intended use, training conditions, and disaggregated performance. Datasheets for
 Datasets [2] does the same for data provenance. FactSheets [3] reframes both as a
 *supplier's declaration of conformity*, borrowing an instrument from regulated
 manufacturing. All three establish disclosure as an obligation rather than a
-courtesy — and all three produce a **static document describing a past
+courtesy. All three also produce a **static document describing a past
 evaluation**. None updates as the system runs.
 
-### 2.2 Interpretability — the argument for showing the real path
+### 2.2 Interpretability: the argument for showing the real path
 
 Rudin argues that post-hoc explanations of black boxes are approximations that
 can be systematically wrong, and that high-stakes decisions should use models
 interpretable by construction [4]. Lipton's decomposition of "interpretability"
 into simulatability, decomposability and algorithmic transparency [5] gives the
 precision this project needs: **what is surfaced here is decomposability and
-algorithmic transparency of the pipeline** — the actual arithmetic that ranked
-the candidates — not a saliency-style story told about it afterwards.
+algorithmic transparency of the pipeline**, the actual arithmetic that ranked
+the candidates, rather than a saliency-style story told about it afterwards.
 
 This is why every variable in the interface is tagged by the role it plays:
 `ranks` (enters the score), `gate` (can refuse, does not rank), or `recorded`
 (stored, affects nothing today). Most are `recorded`, and saying so is the point.
 
-### 2.3 Production readiness and ML testing — the enumerable part
+### 2.3 Production readiness and ML testing: the enumerable part
 
 The ML Test Score [6] defines 28 concrete tests and monitors across data, model,
 infrastructure and monitoring, and scores a system on how many it satisfies.
 This is the closest thing ML has to a readiness gate in the V&V sense, and it
-establishes that **validation state is an enumerable, scoreable thing** — which
+establishes that **validation state is an enumerable, scoreable thing**, which
 is precisely what makes it renderable. Hidden Technical Debt [7] names the
 failure modes conventional software practice misses: entanglement, undeclared
 consumers, hidden feedback loops. Zhang et al.'s survey [8] maps ML testing onto
-conventional testing vocabulary — oracles, adequacy criteria, mutation — and
-Breck et al. [9] show that most production incidents originate in **input**
+the conventional testing vocabulary of oracles, adequacy criteria and mutation,
+and Breck et al. [9] show that most production incidents originate in **input**
 validation rather than model validation.
 
-### 2.4 Runtime assurance — bounding what you cannot verify
+### 2.4 Runtime assurance: bounding what you cannot verify
 
 Sha's Simplex architecture [10] is the canonical pattern: pair an unverified
 high-performance controller with a simple verified safety controller and a
@@ -182,13 +182,13 @@ The gate chain in this system is a run-time assurance layer in exactly this
 sense. **What is unusual is that the decision module is rendered for a human
 rather than only acted upon.**
 
-### 2.5 Assurance cases — the argument as the deliverable
+### 2.5 Assurance cases: the argument as the deliverable
 
 UL 4600 [14] requires the developer of an autonomous product to produce a
 *safety case*: a structured argument with evidence, rather than conformance to a
 prescriptive process. AMLAS [17] gives a six-stage methodology for building such
-a case around an ML component, and GSN [18] supplies the notation — goals,
-strategies, solutions, context, assumptions. Burton et al. [19b] work an
+a case around an ML component, and GSN [18] supplies the notation of goals,
+strategies, solutions, context and assumptions. Burton et al. [19b] work an
 assurance argument through for an ML perception function and are candid about
 where the evidence is weakest: dataset coverage, generalisation claims, and the
 absence of a specification to verify against.
@@ -197,7 +197,7 @@ Read through this lens, the interface here is a **live GSN fragment**: gates are
 goals, displayed readings are solutions, and the operating-envelope statements
 are context and assumptions.
 
-### 2.6 Human factors — what the display is actually for
+### 2.6 Human factors: what the display is actually for
 
 Endsley's model defines situation awareness as perception, comprehension and
 projection [22]. Chen et al.'s SAT model operationalises this for autonomous
@@ -206,8 +206,8 @@ reasoning and constraints, and (L3) its projected outcome with uncertainty [23].
 That is a specification, not a metaphor, and the interface is organised along
 it. A cautionary empirical result [24] shows that displaying **confidence**
 improved trust calibration while local feature explanations did not reliably do
-so — so calibrated odds and validation state are given more prominence than
-per-decision narratives.
+so. That is why calibrated odds and validation state are given more prominence
+than per-decision narratives.
 
 ### 2.7 Methodology pitfalls the interface is designed to expose
 
@@ -216,15 +216,15 @@ legitimately be available at prediction time [25]; Kapoor and Narayanan find
 leakage-driven irreproducibility across 294 papers in 17 fields [26]. In the
 financial-evaluation literature specifically, Bailey and López de Prado show
 that a Sharpe ratio must be corrected for the number of configurations tried
-[27], and that the probability of backtest overfitting is itself estimable [28] —
-with the stronger claim that **failing to report trial count is a form of
+[27], and that the probability of backtest overfitting is itself estimable [28].
+They make the stronger claim that **failing to report trial count is a form of
 misrepresentation**, not a stylistic omission.
 
-### 2.8 Observability — inspectable on demand, not a fixed dashboard
+### 2.8 Observability: inspectable on demand, not a fixed dashboard
 
-Shankar and Parameswaran argue that ML pipelines need *observability* — the
+Shankar and Parameswaran argue that ML pipelines need *observability*, the
 ability to ask arbitrary post-hoc questions about why a pipeline behaved as it
-did — rather than a fixed set of pre-chosen metrics [29]. Interview work with
+did, rather than a fixed set of pre-chosen metrics [29]. Interview work with
 MLOps engineers [30] and the broader deployment survey [31] document what
 practitioners actually need to see.
 
@@ -250,11 +250,11 @@ flowchart TB
   subgraph SENSE["sense"]
     A["public price feed<br/>Coinbase, Kraken fallback"] --> B["universe ~50 instruments"]
   end
-  subgraph DECIDE["decide — SAT level 1"]
+  subgraph DECIDE["decide: SAT level 1"]
     B --> C["6 strategies<br/>generate candidates"]
     C --> D["score, rank the field"]
   end
-  subgraph ASSURE["assure — run-time assurance layer"]
+  subgraph ASSURE["assure: run-time assurance layer"]
     D --> E["ordered gate chain<br/>exposure · liquidity · correlation<br/>odds-to-target · day loss budget"]
     E -->|blocked| G["rejection recorded<br/>with limit, reading, verdict"]
   end
@@ -263,7 +263,7 @@ flowchart TB
     F --> H["position management<br/>dynamic target · stop · time budget"]
     H --> I["closed trade"]
   end
-  subgraph VERIFY["verify — SAT levels 2 and 3"]
+  subgraph VERIFY["verify: SAT levels 2 and 3"]
     I --> J["model arena<br/>5 entrants, held out"]
     I --> K["exit lab<br/>counterfactual replay"]
     I --> L["data invariants<br/>liveness of the safeguards"]
@@ -278,12 +278,12 @@ flowchart TB
 The dotted edges are load-bearing: **measurement never silently rewires
 trading.** A model that scores well is reported as evidence for a change, not
 applied as one. This preserves the property that the acting path is the one that
-was verified — the same separation Simplex [10] and F3269 [11] rely on.
+was verified, the same separation Simplex [10] and F3269 [11] rely on.
 
 ```
 tradecrypto/
 ├── backend/app/
-│   ├── strategy/        22 modules — the decision rules
+│   ├── strategy/        22 modules, the decision rules
 │   │   ├── time_budget.py      P(target reached | ratio, age, P&L),
 │   │   │                       from 4.9M historical observations
 │   │   ├── dynamic_target.py   a target that re-prices as odds decay
@@ -293,9 +293,9 @@ tradecrypto/
 │   ├── risk/guards.py          the ordered gate chain + day stop
 │   ├── execution/
 │   │   ├── broker.py           paper + advisory only
-│   │   ├── venue_fees.py       published fee schedule — the 1.90%
+│   │   ├── venue_fees.py       published fee schedule, the 1.90%
 │   │   └── no_broker.py        the deliberate absence, made explicit
-│   ├── research/        36 modules — the harness
+│   ├── research/        36 modules, the harness
 │   │   ├── model_arena.py      5 entrants, time-split, bootstrap CIs
 │   │   ├── decision_tree.py    the live transparency endpoint
 │   │   ├── exit_lab.py         counterfactual replay of exit rules
@@ -305,7 +305,7 @@ tradecrypto/
 │       ├── liveness.py         has each safeguard ever actually FIRED?
 │       └── vault.py            append-only, hash-chained audit log
 ├── backend/tests/       58 files · 541 tests
-└── frontend/src/        37 components — the interface
+└── frontend/src/        37 components, the interface
 ```
 
 **116 Python files / 34,029 lines · 541 tests / 7,910 lines · 37 UI components.**
@@ -319,9 +319,9 @@ triad [20] as the acceptance criterion.
 
 | SAT level | Rendered | Grounding |
 |---|---|---|
-| **L1 — goal and action** | Which instruments were considered, which passed, which was funded, and the scoring expression that ranked them | decomposability [5] |
-| **L2 — reasoning and constraints** | Every variable with its live value and role (`ranks` / `gate` / `recorded`); every gate with its limit, reading and verdict; the model competition with held-out AUC and CI | ML Test Score as enumerable state [6]; GSN goals and solutions [18] |
-| **L3 — projection with uncertainty** | Probability the target is reached given ratio, age and current P&L; time-to-target quantiles; the explicit statement when no model beats chance | calibrated confidence over explanation [24] |
+| **L1.** Goal and action | Which instruments were considered, which passed, which was funded, and the scoring expression that ranked them | decomposability [5] |
+| **L2.** Reasoning and constraints | Every variable with its live value and role (`ranks` / `gate` / `recorded`); every gate with its limit, reading and verdict; the model competition with held-out AUC and CI | ML Test Score as enumerable state [6]; GSN goals and solutions [18] |
+| **L3.** Projection with uncertainty | Probability the target is reached given ratio, age and current P&L; time-to-target quantiles; the explicit statement when no model beats chance | calibrated confidence over explanation [24] |
 
 Three design rules follow from the literature and are enforced in code:
 
@@ -357,8 +357,8 @@ discipline of [27,28] applied at model-selection time.
 ### 5.2 Split by time, never shuffled
 
 Oldest 70% trains; newest 30% is held out and read once. Shuffling a price
-series permits learning from an afternoon to predict that morning — leakage in
-the formal sense of [25], and the single most common source of the
+series permits learning from an afternoon to predict that morning. That is
+leakage in the formal sense of [25], and the single most common source of the
 irreproducibility documented in [26].
 
 ### 5.3 Crowned on the interval, not the point estimate
@@ -378,8 +378,8 @@ approximately that factor.
 
 A confidence score of the form `mean / (sd/√n)` divides by zero when all
 observations are identical, and the obvious guard returns the score of a coin
-flip for the *most certain* result in the sample — so a strategy losing 3% on all
-20 trades scored "undecided" and would never have been retired.
+flip for the *most certain* result in the sample. A strategy losing 3% on all 20
+trades therefore scored "undecided" and would never have been retired.
 
 ---
 
@@ -387,19 +387,19 @@ flip for the *most certain* result in the sample — so a strategy losing 3% on 
 
 | measured | value |
 |---|---|
-| Round-trip cost, venue studied | **~1.90%** (0.95%/side, embedded in the spread — no line item states it) |
+| Round-trip cost, venue studied | **~1.90%** (0.95%/side, embedded in the spread, with no line item stating it) |
 | Typical daily range of instruments traded | **2–3%** |
 | Best exit rule found, 106 trades | **+0.61%** per trade |
 | Perfect-hindsight ceiling, same trades | **+7.53%** |
-| Best entry model, held-out AUC | **0.786**, 95% CI **[0.40, 1.00]** — includes chance |
+| Best entry model, held-out AUC | **0.786**, 95% CI **[0.40, 1.00]**, which includes chance |
 | Effective independent bets from 11 positions | **2.1** |
 
 **No strategy clears its own transaction cost.** A signal must be right by more
 than an entire day's normal move before it earns anything, and none is.
 
 This is reported as the result rather than buried. An evaluation that models
-commission and ignores the spread produces a profit that cannot exist — the
-failure mode [27,28] describe as pseudo-mathematics, and the reason the cost
+commission and ignores the spread produces a profit that cannot exist. That is
+the failure mode [27,28] describe as pseudo-mathematics, and the reason the cost
 model is a first-class module rather than a constant.
 
 ---
@@ -414,9 +414,9 @@ model is a first-class module rather than a constant.
   currently-listed instruments.
 - **The transparency claim is unevaluated.** Doshi-Velez and Kim [32]
   distinguish application-grounded, human-grounded and functionally-grounded
-  evaluation of interpretability. This project offers only a
-  functionally-grounded argument — the information is present and correct. **No
-  user study was run**, so no claim is made that operator decisions improved.
+  evaluation of interpretability. Only the functionally-grounded argument is
+  offered here: the information is present and correct. **No user study was
+  run**, so no claim is made that operator decisions improved.
 - **Simulated fills.** Paper execution models the spread but not queue position,
   partial fills or market impact.
 
@@ -425,7 +425,7 @@ model is a first-class module rather than a constant.
 ## 8. Failure-driven testing
 
 Most of the 541 tests exist because something broke. Each encodes one incident:
-symptom, root cause, and the check that now catches it — the practice [6]
+symptom, root cause, and the check that now catches it. This is the practice [6]
 formalises as a readiness rubric and [7] explains the need for.
 
 | failure | lesson |
@@ -433,13 +433,13 @@ formalises as a readiness rubric and [7] explains the need for.
 | A rate tuned on hourly bars, applied per tick | the live loop ran 60× faster than the backtest; correct in every test, because the tests also walked bars |
 | `git` cannot store an empty directory | the launcher died on a fresh clone, at a path present on every developer machine |
 | A missing binary wheel is not an error | the installer silently compiled for 15+ minutes, then failed |
-| A hand-written list of "the compiled packages" | missed the transitive dependency nobody lists — the next failure was in it |
+| A hand-written list of "the compiled packages" | missed the transitive dependency nobody lists, and the next failure was in it |
 | A string prefix is not a parent directory | a correctly-placed audit log reported itself compromised |
 | Sample data with backdated timestamps | aged every "has this run lately" check; a five-minute-old install accused itself |
 | An undefined name inside a broad `try/except` | silent forever: the feature wrote nothing and nothing ever failed |
 
 The last is why an undefined-name gate runs over every language in the project.
-Undefined names only — a linter that also argues about style is switched off
+Undefined names only. A linter that also argues about style is switched off
 within a week and takes the useful rule with it.
 
 ---
@@ -454,8 +454,8 @@ git clone https://github.com/pouriaetab/tradecrypto.git ~/tradecrypto
 cd ~/tradecrypto && bash run.sh
 ```
 
-No account, no API key, no credentials — prices come from public endpoints. On
-first run it offers a demo: the real strategies replayed over real stored prices
+Prices come from public endpoints: no account, no API key, no credentials. On
+first run it offers a demo, the real strategies replayed over real stored prices
 with the real cost model, so every view is populated before any live data exists.
 
 ```bash
@@ -474,7 +474,7 @@ liability rather than a feature, and *"it defaults to paper"* is a weaker
 guarantee than not possessing the capability.
 
 Not financial advice and not a trading system. See [DISCLAIMER.md](DISCLAIMER.md).
-MIT licensed, **no warranty** — see [LICENSE](LICENSE).
+MIT licensed with **no warranty**. See [LICENSE](LICENSE).
 
 ---
 

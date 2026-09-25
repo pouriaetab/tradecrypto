@@ -14,8 +14,8 @@ verdict.
 
 ## What the break-even test already shows
 
-On a synthetic market built to have a known lead-lag structure and a mild uptrend — a
-smoke test, not a forecast — the cost-sensitivity curves ranked exactly as the theory
+On a synthetic market built to have a known lead-lag structure and a mild uptrend, a
+smoke test, not a forecast, the cost-sensitivity curves ranked exactly as the theory
 predicts:
 
 | Strategy | Hold | Break-even cost (per side) |
@@ -31,7 +31,7 @@ estimated cost is roughly 80–100 bps per side, which is why the fast ones sit 
 and the swing one sits near it.
 
 This is your own intuition ("fast scalping mostly doesn't work on this platform") coming out
-of the arithmetic rather than out of memory — and it says where to spend effort: the swing
+of the arithmetic rather than out of memory, and it says where to spend effort: the swing
 and rotation ideas, not the flip.
 
 ## What is not claimed
@@ -45,37 +45,37 @@ failing.
 ## The order to work through them
 
 1. Let the engine collect a week of bars.
-2. Run **Model Lab → `regime_swing`** first — it has the most room above the cost line.
+2. Run **Model Lab → `regime_swing`** first, it has the most room above the cost line.
 3. Then `lead_lag_rotation`; check how many followers survive FDR correction. If the answer
    is zero on real data, the batch-rotation idea is not there, and that is worth knowing in
    an afternoon rather than after three months of trading.
 4. Run `fast_flip` last, as the control. If it clears the gates, something is wrong with the
    cost model and you should distrust the rest.
 
-## pump_catch — the same rule on a faster clock (2026-09-19)
+## pump_catch: the same rule on a faster clock (2026-09-19)
 
 `pump_catch` is `volume_build`'s trigger (1.5× the coin's 14-day hourly volume
 normal, +3% over two hours, a decisive 48-hour trend, not red today, not already
 extended) evaluated on a **rolling 60-minute window of 15-minute bars** that the
 engine refreshes every five minutes, instead of the forming calendar hour
-refreshed every ten. It exists because PENGU was bought at 12:24 — the top of a
-run that started at 11:39 — and every open over the previous three days had
+refreshed every ten. It exists because PENGU was bought at 12:24, the top of a
+run that started at 11:39, and every open over the previous three days had
 landed 1–57 minutes after its hourly bar.
 
 It is not a different rule. `tests/test_pump_catch.py` proves parity: the same
 synthetic move fires on both clocks with the identical exit contract, and the
 rolling one fires first. Whether that lead is worth having is decided by
 `research/rolling_entry.py` (job `rolling_entry`, daily; card on the Strategies
-tab): first run, 190 days × 30 coins — on the 47 moves both clocks caught, the
+tab): first run, 190 days × 30 coins, on the 47 moves both clocks caught, the
 rolling clock bought a median 30 minutes earlier and 0.31% lower and netted
 +0.81%/trade against +0.14%; but it also made 64 entries the hour never made,
 at −0.80%/trade, and missed 61 the hour made. Net of everything the two clocks
 were level (−0.12% vs −0.13%). So: **earlier, yes; without more false entries,
-no — not yet.** It runs in paper beside volume_build so the lab can keep score
+no, not yet.** It runs in paper beside volume_build so the lab can keep score
 on real fills, and the extra entries carry their features so the retrainer can
 look for what separates them.
 
-## burst_catch — the first hour of a burst, small target, hard clock (2026-09-21)
+## burst_catch: the first hour of a burst, small target, hard clock (2026-09-21)
 
 Written from 2026-09-20 10:30–12:00: twelve coins ran 3–12% inside an hour and the desk
 bought all twelve at 11:41–12:11, at the top, because every rule needs a climb that is

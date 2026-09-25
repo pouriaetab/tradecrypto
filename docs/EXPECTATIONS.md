@@ -20,8 +20,8 @@ $20/day on $500 is **4.0% per day**. $50/day is **10.0% per day**.
 | 10% | $8,724 | ~$6 × 10¹⁷ |
 | 0.2% (Medallion-class) | $531 | $1,033 |
 
-The last row is the point of the table. Renaissance Technologies' Medallion fund — the best
-documented track record in the history of the industry — returned roughly 66% a year net of
+The last row is the point of the table. Renaissance Technologies' Medallion fund, the best
+documented track record in the history of the industry, returned roughly 66% a year net of
 fees, which is about **0.2% per trading day**. The target above is 20 to 50 times that rate,
 sustained, with no days off.
 
@@ -46,7 +46,7 @@ number twice.
 Three further constraints stack on top:
 
 1. **No shorting.** Robinhood does not permit shorting crypto. Roughly 75–80% of the signals
-   a mean-reversion model generates are "fade this pump" — sell signals you cannot act on.
+   a mean-reversion model generates are "fade this pump", sell signals you cannot act on.
    The backtester counts these explicitly (`dropped_short_signals`) so the loss is visible.
 2. **Execution latency.** Agentic trading runs over an OAuth-gated MCP endpoint mediated by
    an LLM. Round trips are seconds, not milliseconds. Anything that needs sub-second
@@ -79,7 +79,7 @@ And you should not put $20,000 behind an edge you have not proven with $500 firs
 > cost, reliably, out of sample?
 
 This system is built to answer that question rigorously and cheaply, and to tell you *no*
-when the answer is no — which is the likely answer for short-horizon scalping specifically,
+when the answer is no, which is the likely answer for short-horizon scalping specifically,
 and the answer most trading software is designed never to give you.
 
 If the answer turns out to be yes for some strategy at some horizon, then you scale capital
@@ -93,7 +93,7 @@ a small amount of money to avoid a large mistake, and the measurement machinery 
 2. **Collect history.** The engine stores every candle it fetches. Backtests are meaningless
    until there are weeks of it.
 3. **Run the cost-sensitivity curve.** If the strategy is unprofitable at your measured cost,
-   stop there. Do not tune parameters until it looks profitable — that is exactly the
+   stop there. Do not tune parameters until it looks profitable, that is exactly the
    behaviour the deflated Sharpe and PBO machinery exists to catch.
 4. **Walk-forward validation.** Purged, embargoed, with every configuration counted.
 5. **Paper trade for 200+ trades**, with live quotes and simulated costs.

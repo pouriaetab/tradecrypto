@@ -1,4 +1,4 @@
-# Venue universe sync — removed before publication
+# Venue universe sync: removed before publication
 
 Kept as a marker for the references that point here. See
 `docs/ROBINHOOD_API.md` for the full account of what was removed and why.
@@ -12,7 +12,7 @@ universe matched the venue rather than a hand-kept list.
 ## What happens now
 
 The universe is seeded from Coinbase at startup, unconditionally and without
-credentials — about 50 instruments. That path used to be conditional, which
+credentials, about 50 instruments. That path used to be conditional, which
 produced the worst bug in this project's history: with no broker configured the
 seed never ran, the universe stayed empty, and the application came up healthy
 and did nothing at all, forever. The failure was logged at WARNING and

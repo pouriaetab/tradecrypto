@@ -524,7 +524,7 @@ fi
 if [ -n "$TC_LAN" ]; then
   TOKEN="$(cat "$SCRIPT_DIR/secrets/lan_token.txt" 2>/dev/null || true)"
   echo
-  ok  "phone access is ON — nothing to install"
+  ok  "phone access is ON, nothing to install"
   log "  On your phone, on the same wifi as this Mac, open:"
   log "      http://${LAN_IP}:${FRONTEND_PORT}/?token=${TOKEN:-<printed-in-the-backend-log-above>}"
   log "  Then use Share -> Add to Home Screen to keep it as an app icon."
