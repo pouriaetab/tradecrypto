@@ -10,6 +10,44 @@ publication.
 
 ---
 
+## Why this exists, and why it is crypto
+
+I cannot publish my previous employer's data, and I do not have access to yours.
+So this is the alternative: find a domain with a free, high-volume, continuously
+updating public data feed, and build the engineering around it in the open.
+
+Crypto is the cleanest such feed available — no credentials, no licence, no
+vendor relationship, roughly fifty instruments quoting twenty-four hours a day.
+It was chosen for **data availability and nothing else**. Nothing in this project
+depends on the domain being finance; the same apparatus would sit on sensor
+telemetry, manufacturing yield, or claims data with the nouns changed
+(see [`docs/METHOD.md` §9](docs/METHOD.md)).
+
+**The trading is the substrate. The engineering is the subject.** What is being
+demonstrated is:
+
+- a **test suite** derived from real failures rather than from imagined ones —
+  58 files, 541 test functions, each traceable to the incident that caused it
+- **quality assurance and control at the data layer** — fifteen invariants that
+  ask whether the running system's output is true of the world, not whether the
+  code compiles
+- **transparent statistical validation** — held-out splits, a no-variable
+  control model, bootstrap confidence intervals, and **stated acceptance
+  criteria that are enforced in code**, including the criterion that refused to
+  promote this system's own best model
+- an explicit account of **what happens when the program misbehaves** — hazard
+  analysis, fault trees over incidents that actually occurred, and the gates and
+  invariants that now stand where each one got through
+
+The method, written out step by step in the vocabulary each engineering field
+uses for it, is in **[`docs/ENGINEERING.md`](docs/ENGINEERING.md)**.
+
+That the strategy does not clear its own cost floor is a **result**, not a
+disappointment. A measurement apparatus that only confirms what you hoped for is
+not a measurement apparatus.
+
+---
+
 ## Abstract
 
 Statistical and machine-learning decision pipelines are conventionally opaque at
