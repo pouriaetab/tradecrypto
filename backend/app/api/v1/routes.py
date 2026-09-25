@@ -381,7 +381,7 @@ def setup_restart():
 @router.get("/robinhood/probe")
 def rh_probe():
     """Can we reach Robinhood, and are credentials in place? Places no orders."""
-    from app.execution import rh_api
+    from app.execution import no_broker as rh_api
     return ok(_clean(rh_api.RobinhoodCrypto().probe()))
 
 
@@ -397,7 +397,7 @@ def rh_sync_universe():
     merges them, so one press answers the question it appears to ask.
     """
     from app.data import universe as _u
-    from app.execution import rh_api
+    from app.execution import no_broker as rh_api
     try:
         synced = rh_api.sync_universe()
     except rh_api.NotConfigured as exc:
@@ -806,7 +806,7 @@ def dayscan_days(limit: int = 900):
 def rh_adopt_universe():
     """Add every Robinhood-API-tradable coin we are not already watching."""
     from app.data import universe as _u
-    from app.execution import rh_api
+    from app.execution import no_broker as rh_api
     try:
         return ok(_clean(_u.adopt_from_robinhood()))
     except rh_api.NotConfigured as exc:
@@ -816,7 +816,7 @@ def rh_adopt_universe():
 @router.post("/robinhood/measure-spreads")
 def rh_measure_spreads(payload: dict = Body(default={})):
     """Read Robinhood's own bid/ask per coin: spread measured, not assumed."""
-    from app.execution import rh_api
+    from app.execution import no_broker as rh_api
     try:
         return ok(_clean(rh_api.measure_spreads(payload.get("symbols"))))
     except rh_api.NotConfigured as exc:
@@ -826,7 +826,7 @@ def rh_measure_spreads(payload: dict = Body(default={})):
 @router.get("/robinhood/quote")
 def rh_quote(symbol: str = "BTC-USD", quantity: str = "1"):
     """Robinhood's best bid/ask and the estimated fill for a given size."""
-    from app.execution import rh_api
+    from app.execution import no_broker as rh_api
     c = rh_api.RobinhoodCrypto()
     try:
         return ok(_clean({"best_bid_ask": c.best_bid_ask(symbol),
@@ -838,7 +838,7 @@ def rh_quote(symbol: str = "BTC-USD", quantity: str = "1"):
 @router.get("/robinhood/routing-cost")
 def rh_routing_cost():
     """Market-maker vs exchange routing, measured from live quotes. No order placed."""
-    from app.execution import rh_api
+    from app.execution import no_broker as rh_api
     try:
         return ok(_clean(rh_api.routing_comparison()))
     except Exception as exc:
@@ -848,7 +848,7 @@ def rh_routing_cost():
 @router.get("/robinhood/fee-status")
 def rh_fee_status():
     """Your real 30-day volume and fee tier, read from the account."""
-    from app.execution import rh_api
+    from app.execution import no_broker as rh_api
     try:
         return ok(_clean(rh_api.fee_status()))
     except Exception as exc:
@@ -858,7 +858,7 @@ def rh_fee_status():
 @router.get("/robinhood/fee-tiers")
 def rh_fee_tiers(volume_usd: float = 0.0):
     """Robinhood's published exchange-routing fee schedule, and where you sit."""
-    from app.execution import rh_api
+    from app.execution import no_broker as rh_api
     taker = rh_api.fee_for_volume(volume_usd, "taker")
     maker = rh_api.fee_for_volume(volume_usd, "maker")
     return ok(_clean({

@@ -146,8 +146,11 @@ def sample(key: str, product: str | None = None, limit: int = 25) -> dict:
                 out.update(_rows_from(recs, limit))
                 out["meta_from_provider"] = b.get("meta")
         elif key.startswith("robinhood_"):
-            from app.execution import rh_api
-            c = rh_api.RobinhoodCrypto()
+            # no broker integration in this build — the order-placing and account code was removed when this repository was published.
+            out["error"] = "no broker integration in this build — the order-placing and account code was removed when this repository was published"
+            return out
+        elif False:
+            c = None
             if key == "robinhood_pairs":
                 data = c.trading_pairs()
                 out["request_url"] = meta["url"]

@@ -24,7 +24,8 @@ import time
 from app.config import get_settings
 from app.core import db
 
-VALID = ("paper", "advisory", "mcp")
+# "mcp" (live, real money) was removed with the broker it needed.
+VALID = ("paper", "advisory")
 LABELS = {
     "paper": "Paper",
     "advisory": "Advisory",
@@ -56,7 +57,9 @@ def get_mode() -> str:
 
 
 def live_allowed() -> bool:
-    return get_settings().live_confirm.strip() == "I_ACCEPT_REAL_MONEY_RISK"
+    # There is no live mode any more. This stays as a function so every
+    # caller keeps working and every one of them takes the safe branch.
+    return False
 
 
 def set_mode(mode: str) -> dict:

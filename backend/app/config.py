@@ -16,6 +16,31 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = BACKEND_DIR.parent
 
 
+def _project_path(raw: str) -> Path:
+    """Resolve a configured path to ONE canonical absolute form.
+
+    Two rules. The second one is newer and was found by a test on macOS.
+
+    1. A relative path resolves against the PROJECT root, never the process
+       working directory. The backend runs with its cwd set to backend/, so
+       "./secrets/x.json" names two different files depending on who opens it.
+       That is not hypothetical: the setup page wrote credentials to
+       <project>/secrets/ while the client looked in <project>/backend/secrets/,
+       found nothing, and reported "not configured" with the file sitting there.
+
+    2. An ABSOLUTE path is resolved as well. The previous version returned it
+       untouched, reasoning that absolute means final. It does not. On macOS
+       /var is a symlink to /private/var, so a file named /var/folders/.../X
+       compares unequal to the same file named /private/var/folders/.../X. Any
+       caller asking "is this path inside the project?" then gets a confident
+       wrong answer — which is precisely the shape of the vault-independence
+       bug this project has already shipped once. One canonical form removes
+       the whole class.
+    """
+    p = Path(raw)
+    return (p if p.is_absolute() else PROJECT_ROOT / p).resolve()
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=(PROJECT_ROOT / ".env"), env_prefix="", extra="ignore"
@@ -46,10 +71,11 @@ class Settings(BaseSettings):
     live_confirm: str = Field("", alias="TC_LIVE_CONFIRM")
     rh_mcp_url: str = Field("https://agent.robinhood.com/mcp/trading", alias="TC_RH_MCP_URL")
     rh_token_path: str = Field("./secrets/robinhood_api.json", alias="TC_RH_TOKEN_PATH")
-    # Robinhood Crypto Trading REST API (docs.robinhood.com/crypto/trading).
-    # Either set these, or drop the same two fields into the JSON file above.
-    rh_api_key: str = Field("", alias="TC_RH_API_KEY")
-    rh_private_key: str = Field("", alias="TC_RH_PRIVATE_KEY")
+    # There were two more fields here, for a broker API key and its signing key.
+    # They are gone: this build has no broker client to hand them to, so a field
+    # that accepts a credential and then does nothing with it is worse than no
+    # field at all. The two above survive only because a path-resolution test
+    # pins their behaviour; nothing reads them at runtime.
 
     # --- data ---
     primary_feed: str = Field("coinbase", alias="TC_PRIMARY_FEED")
@@ -163,34 +189,23 @@ class Settings(BaseSettings):
 
     @property
     def db_file(self) -> Path:
-        p = Path(self.db_path)
-        return p if p.is_absolute() else (PROJECT_ROOT / p).resolve()
+        return _project_path(self.db_path)
 
     @property
     def rh_credentials_file(self) -> Path:
-        """Robinhood API credentials, resolved against the PROJECT root.
-
-        The backend runs with its working directory set to backend/, so a
-        relative path like "./secrets/robinhood_api.json" means two different
-        files depending on who resolves it. That is exactly what happened: the
-        setup page wrote the credentials to <project>/secrets/… and the API
-        client looked for <project>/backend/secrets/… , found nothing, and
-        reported "not configured" with the file sitting right there.
-
-        db_file already existed to solve this for the database. Use it.
-        """
-        p = Path(self.rh_token_path)
-        return p if p.is_absolute() else (PROJECT_ROOT / p).resolve()
+        """Broker credentials path. See _project_path for why it is resolved
+        this way and not by each caller in turn."""
+        return _project_path(self.rh_token_path)
 
     @property
     def live_enabled(self) -> bool:
         """Real money may only move when BOTH conditions hold."""
-        return self.execution_mode in {"mcp"} and self.live_confirm.strip() == "I_ACCEPT_REAL_MONEY_RISK"
+        # No live mode exists in this build; the broker it needed was removed.
+        return False
 
     @property
     def kill_switch_file(self) -> Path:
-        p = Path(self.kill_switch_path)
-        return p if p.is_absolute() else (PROJECT_ROOT / p).resolve()
+        return _project_path(self.kill_switch_path)
 
     def safety_report(self) -> dict:
         """Human-readable statement of exactly what this process is allowed to do."""

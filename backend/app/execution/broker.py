@@ -165,82 +165,27 @@ class AdvisoryBroker:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-class RobinhoodMCPBroker:
-    """Direct execution through Robinhood's agentic MCP.
-
-    Reality check, so nobody is surprised later: this endpoint is an OAuth-gated
-    remote MCP server designed to be driven by an interactive LLM client. It is
-    not a keyed REST API. Consequences:
-
-      * A one-time browser OAuth on a desktop is required, and the resulting
-        token has to be persisted for unattended use.
-      * Rate limits and token lifetime are undocumented publicly.
-      * Latency is a network round trip plus tool mediation -- expect seconds,
-        not milliseconds. Any strategy that needs sub-second execution is not
-        viable here, and the backtester's one-bar delay reflects that.
-
-    Until a token exists, every method raises with instructions instead of
-    pretending to work.
-    """
-
-    mode = "mcp"
-
-    def __init__(self):
-        self.s = get_settings()
-        self._session = None
-
-    def _token_path(self):
-        from pathlib import Path
-        p = Path(self.s.rh_token_path)
-        return p if p.is_absolute() else (self.s.db_file.parent.parent / p).resolve()
-
-    def probe(self) -> dict:
-        tok = self._token_path()
-        try:
-            import mcp  # noqa: F401
-            sdk = True
-        except ImportError:
-            sdk = False
-        return {
-            "mode": self.mode,
-            "ready": bool(sdk and tok.exists() and self.s.live_enabled),
-            "mcp_sdk_installed": sdk,
-            "token_present": tok.exists(),
-            "token_path": str(tok),
-            "live_confirm_set": self.s.live_enabled,
-            "endpoint": self.s.rh_mcp_url,
-            "setup_steps": [
-                "1. On a desktop, open the Robinhood app/site and enable Agentic Trading; "
-                "it creates a separate Agentic account. Fund it with ONLY what you accept losing.",
-                "2. Confirm crypto is permitted for agents in your state (it is restricted in some, incl. New York).",
-                f"3. Connect the MCP once interactively: claude mcp add --transport http robinhood-trading {self.s.rh_mcp_url}",
-                "4. Complete the browser OAuth. Never paste your Robinhood password into any tool.",
-                f"5. Persist the resulting token to {tok} for unattended use.",
-                "6. Set TC_EXECUTION_MODE=mcp and TC_LIVE_CONFIRM=I_ACCEPT_REAL_MONEY_RISK in .env.",
-                "Until all of the above is true, this broker refuses to place orders.",
-            ],
-        }
-
-    def place(self, req: OrderRequest, quote_mid: float) -> Fill:
-        p = self.probe()
-        if not p["ready"]:
-            cid = f"mcp-blocked-{uuid.uuid4().hex[:8]}"
-            reason = "Robinhood MCP not ready: " + ", ".join(
-                k for k in ("mcp_sdk_installed", "token_present", "live_confirm_set") if not p[k]
-            )
-            _persist_order(req, cid, self.mode, 0, req.mid_at_decision, quote_mid,
-                           "rejected", None, None, reason, p)
-            db.log_event("ERROR", "execution", reason, p)
-            return Fill(cid, req.symbol, req.side, 0, 0, time.time(), "rejected", reject_reason=reason)
-        raise NotImplementedError(
-            "Live MCP order placement is intentionally not wired up until you have "
-            "completed the OAuth setup and reviewed the tool names Robinhood's MCP "
-            "actually exposes. Use TC_EXECUTION_MODE=advisory in the meantime -- it "
-            "runs the full strategy and hands you an executable ticket."
-        )
+# RobinhoodMCPBroker USED TO LIVE HERE, and it was the only code in the project
+# that could place a real order. It was deleted when this repository was made
+# public: a research tool that can move real money is a liability, not a
+# feature, and "it defaults to paper" is a weaker guarantee than not having the
+# capability at all.
+#
+# What remains simulates fills against live quotes. There is no credential path,
+# no venue client, and nothing to configure that would change that.
 
 
 def get_broker(mode: str | None = None) -> Broker:
     from app.core import mode as mode_mod
     m = (mode or mode_mod.get_mode()).lower()
-    return {"paper": PaperBroker, "advisory": AdvisoryBroker, "mcp": RobinhoodMCPBroker}[m]()
+    brokers = {"paper": PaperBroker, "advisory": AdvisoryBroker}
+    if m not in brokers:
+        # "mcp" used to map to the live broker. Asking for it now is a
+        # programming error, not a configuration one, so it says so rather than
+        # quietly falling back to paper — a silent downgrade is how a system
+        # ends up reporting that it is live when it is not.
+        raise ValueError(
+            f"no broker for mode {m!r}. This build has paper and advisory only; "
+            "the live broker was removed when the project was published."
+        )
+    return brokers[m]()

@@ -36,7 +36,7 @@ from __future__ import annotations
 import time
 
 from app.core import db
-from app.execution.rh_api import FEE_TIERS, fee_for_volume
+from app.execution.venue_fees import FEE_TIERS, fee_for_volume
 
 MARKET_MAKER_SPREAD_PCT = 0.95          # measured on 33 coins; matches their docs
 
@@ -146,10 +146,11 @@ def estimated_cost_live(symbol: str, notional_usd: float) -> dict:
     which is the one number this project has been assuming rather than measuring.
     Read-only: it places nothing.
     """
-    from app.execution import rh_api
-    out: dict = {"symbol": symbol, "notional_usd": notional_usd}
+    out: dict = {"symbol": symbol, "notional_usd": notional_usd,
+                 "error": "no broker integration in this build — the order-placing and account code was removed when this repository was published"}
+    return out
     try:
-        c = rh_api.RobinhoodCrypto()
+        c = None
         book = c.best_bid_ask(symbol, v2=True)
         rows = book.get("results") if isinstance(book, dict) else book
         row = (rows or [{}])[0]

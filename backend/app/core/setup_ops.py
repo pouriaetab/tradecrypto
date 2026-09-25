@@ -69,7 +69,6 @@ def credentials_path() -> Path:
 
 def status() -> dict:
     """What is missing, in the order it has to be fixed."""
-    from app.execution import rh_api
 
     have_nacl = _installed("nacl")
     cred = credentials_path()
@@ -86,10 +85,8 @@ def status() -> dict:
 
     reachable, err, account = None, None, None
     if have_nacl and has_creds:
-        probe = rh_api.RobinhoodCrypto().probe()
-        reachable = probe.get("reachable")
-        err = probe.get("error")
-        account = probe.get("account")
+        # no broker integration in this build — the order-placing and account code was removed when this repository was published. Credentials on disk are never used and never sent anywhere.
+        reachable, err = None, "no broker integration in this build — the order-placing and account code was removed when this repository was published"
 
     confirmed = db.query_one("SELECT COUNT(*) c FROM universe WHERE rh_confirmed=1")["c"]
     measured = db.query_one(
@@ -217,8 +214,8 @@ def save_api_key(api_key: str) -> dict:
     path.write_text(json.dumps(d, indent=2))
     os.chmod(path, 0o600)
     db.log_event("INFO", "setup", "Robinhood API key saved")
-    from app.execution import rh_api
-    return {"ok": True, "probe": rh_api.RobinhoodCrypto().probe()}
+    return {"ok": False, "probe": {"reachable": None,
+            "error": "no broker integration in this build — the order-placing and account code was removed when this repository was published"}}
 
 
 def restart() -> dict:

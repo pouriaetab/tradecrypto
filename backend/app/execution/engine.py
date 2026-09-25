@@ -393,9 +393,9 @@ def prefetch_quotes(symbols: list[str], products: dict[str, str]) -> dict:
     stale = [s for s in want if (now - _rh_quotes.get(s, (None, 0.0))[1]) > RH_QUOTE_TTL_S]
     if stale:
         try:
-            from app.execution import rh_api
-            c = rh_api.RobinhoodCrypto()
-            if c.configured:
+            # no broker integration in this build — the order-placing and account code was removed when this repository was published. Quotes come from the public feed only.
+            c = None
+            if False:
                 for i in range(0, len(stale), 10):
                     batch = stale[i:i + 10]
                     resp = c.best_bid_ask(*[f"{s}-USD" for s in batch], v2=False)

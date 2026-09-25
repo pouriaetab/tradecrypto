@@ -306,11 +306,10 @@ def _job_spreads() -> str:
     is measured it is priced at the published 0.95% default. Close, but not its
     own number.
     """
-    from app.execution import rh_api
-    try:
-        out = rh_api.measure_spreads()
-    except Exception as exc:
-        return f"could not reach Robinhood: {exc}"
+    # no broker integration in this build — the order-placing and account code was removed when this repository was published. Each coin keeps the published 0.95%/side default, which is what
+    # every cost figure in this project already uses.
+    return "no broker integration in this build — the order-placing and account code was removed when this repository was published"
+    out = {}
     n = out.get("measured") or out.get("updated") or 0
     errs = out.get("errors") or []
     bits = [f"{n} coin(s) measured"]
@@ -619,8 +618,9 @@ def _job_rh_spreads() -> str:
     when the desk is most likely to be trading a mover. A cost model built on a
     day-old number is a cost model that is wrong at the moment it matters most.
     """
-    from app.execution import rh_api, rh_spread
-    out = rh_api.measure_spreads()
+    from app.execution import rh_spread          # noqa: F401
+    # no broker integration in this build — the order-placing and account code was removed when this repository was published.
+    out = {"measured": 0, "note": "no broker integration in this build — the order-placing and account code was removed when this repository was published"}
     if isinstance(out, dict) and out.get("error"):
         raise RuntimeError(str(out["error"])[:300])
     # `measured` is the LIST of coins; `n` is the count. Reading the list as a

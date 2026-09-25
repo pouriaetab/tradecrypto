@@ -209,11 +209,15 @@ def test_credential_path_is_resolved_in_exactly_one_place():
     assert s.rh_credentials_file.is_absolute()
     assert setup_ops.credentials_path() == s.rh_credentials_file
 
-    import inspect
-    from app.execution import rh_api
-    src = inspect.getsource(rh_api.RobinhoodCrypto._from_file)
-    assert "rh_credentials_file" in src, (
-        "rh_api must use the shared resolver, not build its own path")
+    # The second half of this test checked that the Robinhood client used the
+    # same resolver instead of building its own path. That client was deleted
+    # when the project was published, so there is no longer a second reader to
+    # disagree with the first — which is the strongest possible version of the
+    # thing this test was defending.
+    #
+    # The first half stays: a settings path that is not absolute is ambiguous
+    # the moment two processes have different working directories, and that is
+    # true with or without a broker.
 
 
 def test_no_module_resolves_a_settings_path_by_hand():

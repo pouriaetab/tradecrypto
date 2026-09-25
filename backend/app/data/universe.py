@@ -178,89 +178,13 @@ def movers(limit: int = 25) -> list[dict]:
 
 
 def adopt_from_robinhood() -> dict:
-    """Grow the universe to EVERY coin Robinhood's API will trade and our feed can price.
+    """Kept as a no-op so callers and tests keep working.
 
-    SEED_RH_SYMBOLS above was a hand-written guess, and it was wrong in the way
-    that costs money: coins like AERO and SKL move hard, are tradable on
-    Robinhood, and were never even watched. Every 'no opportunity found' result
-    this project has produced was measured on the seed list, not on what
-    Robinhood actually offers. This closes that gap.
+    no broker integration in this build — the order-placing and account code was removed when this repository was published. Widening the universe needed an account; `refresh_universe()` does
+    not, and it is what the app actually runs at startup.
     """
-    from app.execution.rh_api import RobinhoodCrypto
-
-    pairs = RobinhoodCrypto().trading_pairs()
-    tradable: set[str] = set()
-    for pair in pairs:
-        sym = (pair.get("symbol") or "").upper()
-        base = sym.split("-")[0]
-        if base and sym.endswith("-USD") and pair.get("is_api_tradable"):
-            tradable.add(base)
-
-    feed = get_feed()
-    products = feed.products()
-    now = time.time()
-    have = {r["symbol"] for r in db.query("SELECT symbol FROM universe")}
-
-    rows, added, no_price = [], [], []
-    for sym in sorted(tradable - have):
-        product = products.get(sym)
-        if not product:
-            no_price.append(sym)
-            continue
-        rows.append((sym, product, feed.name, 1, 1, None,
-                     "adopted: Robinhood says is_api_tradable", now))
-        added.append(sym)
-
-    if rows:
-        db.executemany(
-            """INSERT INTO universe(symbol, feed_product, feed_source, rh_confirmed,
-                                    active, min_notional, note, updated_at)
-               VALUES (?,?,?,?,?,?,?,?)
-               ON CONFLICT(symbol) DO UPDATE SET
-                 rh_confirmed=excluded.rh_confirmed,
-                 active=excluded.active,
-                 updated_at=excluded.updated_at""",
-            rows,
-        )
-    # Report the WHOLE picture, not just the delta.
-    #
-    # "adopted 0 coins" was logged every boot and read as "we have everything".
-    # It does not say how many pairs Robinhood returned, how many of those the
-    # API will actually trade, or how many were dropped because our price feed
-    # cannot quote them -- and that last number is the one that matters when the
-    # Robinhood website shows far more coins than this desk tracks.
-    db.log_event(
-        "INFO", "universe",
-        f"Robinhood returned {len(pairs)} pairs; {len(tradable)} are USD and "
-        f"is_api_tradable; {len(added)} newly adopted; "
-        f"{len(no_price)} dropped because the price feed cannot quote them"
-        + (f" ({', '.join(sorted(no_price)[:12])})" if no_price else ""),
-        {"pairs_returned": len(pairs), "api_tradable": len(tradable),
-         "added": added, "no_feed_price": no_price})
-    out = {
-        "pairs_returned_by_robinhood": len(pairs),
-        "api_tradable_on_robinhood": len(tradable),
-        "already_tracked": len(have),
-        "added": added,
-        "added_count": len(added),
-        "tradable_but_feed_cannot_price": no_price,
-        "universe_now": len(have) + len(added),
-        "checked_at": now,
-        "next": ("Backfill history for the new coins before trusting any signal on "
-                 "them -- they have no bars yet."),
-    }
-    # Persist it. These counts existed only in this return value and in a log
-    # line, so the four tiles on the Universe page could only ever be filled by
-    # pressing a button in that same browser session -- and the button called a
-    # DIFFERENT endpoint, whose response uses different key names, so they showed
-    # two dashes and two zeros forever. Written down, they render on page load.
-    db.execute(
-        "INSERT INTO app_state(key, value, updated_ts) VALUES (?,?,?) "
-        "ON CONFLICT(key) DO UPDATE SET value=excluded.value, "
-        "updated_ts=excluded.updated_ts",
-        ("robinhood_list_counts", json.dumps(out), now))
-    return out
-
+    return {"added_count": 0, "added": [], "pairs": 0, "tradable": 0,
+            "note": "no broker integration in this build — the order-placing and account code was removed when this repository was published"}
 
 def robinhood_list_counts() -> dict:
     """The last Robinhood list check, as recorded by adopt_from_robinhood()."""

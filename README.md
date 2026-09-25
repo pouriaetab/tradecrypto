@@ -1,219 +1,477 @@
-# TradeCrypto
+# Surfacing the Black Box: Runtime Transparency for a Statistical Decision Pipeline
 
-> ## ⚠️ Read [DISCLAIMER.md](DISCLAIMER.md) first
->
-> Personal research project, shared **as-is**, under the MIT License — **no
-> warranty, and the author is not liable for anything, including trading
-> losses.** It is **not financial advice**.
->
-> **It loses money.** That is the measured result, not modesty: a Robinhood
-> round trip costs about 1.9% and most of these coins move 2–3% in a day, so the
-> cost eats the edge. Over a month of real replayed prices the book is down.
->
-> It trades **pretend money by default**. Making it use real money takes three
-> deliberate acts by whoever runs it, and no button in the app can do them. If
-> you take those steps, the risk and the outcome are yours.
+**A working system, and a negative result.**
 
-
-A crypto trading bot with a web page that shows every decision it makes and why.
-Runs on **fake money against real live prices** — nothing is at risk.
-
-### Which file do I read?
-
-| you are | read this |
-|---|---|
-| **new here, want to run it** | **[START-HERE.md](START-HERE.md)** |
-| already running it, an update was sent | [HOW-TO-UPDATE.md](HOW-TO-UPDATE.md) |
-| sharing it with someone | [OWNER-SETUP.md](OWNER-SETUP.md) |
-| want the settings explained | [SETUP.md](SETUP.md) |
+A research desk that watches live market data, decides what it *would* trade,
+and renders its entire reasoning chain — candidate generation, feature weighting,
+competing models, held-out validation, and every risk gate — in a live operator
+interface. It cannot place an order; the broker integration was removed before
+publication.
 
 ---
 
-## About the project
+## Abstract
 
-A Robinhood crypto trading system built so that **every number on screen can be traced to the
-model, the data, and the assumptions that produced it**. No black boxes, and no number without
-its sample size.
+Statistical and machine-learning decision pipelines are conventionally opaque at
+runtime. Their validation lives in notebooks, their model selection in
+experiment logs, and their guard conditions in code — none of it visible to the
+person accountable for the system while it is running. The literature has
+addressed this from two directions that do not meet: **transparency artifacts**
+(model cards, datasheets, FactSheets) are offline documents authored once
+[1,2,3], and **runtime monitoring** is machine-facing telemetry designed to
+trigger alerts rather than to be reasoned about [12,13,29].
 
-> **Read [`docs/EXPECTATIONS.md`](docs/EXPECTATIONS.md) first.** It contains the arithmetic on
-> what a $500 account can and cannot produce, and it is the reason this project is built as a
-> measurement instrument before it is built as a money machine.
+This project takes the position that the assurance argument itself — *why this
+decision, on what evidence, with which checks passed* — should be a live,
+inspectable interface. It implements that for a complete decision pipeline over
+public cryptocurrency market data: 6 strategies, ~50 instruments, a five-entrant
+model competition scored on held-out data, and an ordered pre-trade gate chain,
+all continuously exposed through a UI organised along the three levels of the
+Situation-awareness-based Agent Transparency model [23].
 
-## Quick start
+The measured result for the trading task is **negative and reported as such**.
+Round-trip cost on the venue studied is ~1.90% against a typical daily range of
+2–3%; no strategy clears that bar, and the leading entry model's held-out AUC
+confidence interval includes chance. The engineering contribution is the harness
+that establishes this reliably rather than the strategies it evaluates.
 
-```bash
-cd /path/to/tradecrypto
-./run.sh                 # backend :8006, dashboard :5180
-./run.sh --selftest      # verify feeds, database, models and statistics without trading
+---
+
+## 0. Method, and how to read this
+
+Each part of this system is a named engineering process with a canonical
+sequence of steps. **[docs/METHOD.md](docs/METHOD.md)** sets out those steps
+explicitly — hazard analysis (STPA and HARA), risk management (ISO 31000),
+verification and validation (IEEE 1012-2024), test engineering
+(ISO/IEC/IEEE 29119), quality and closed-loop corrective action, the data
+pipeline, and model validation — and maps each step onto what was actually done
+here, with the measured numbers.
+
+**[docs/ENGINEERING.md](docs/ENGINEERING.md)** is the worked companion to that
+map. Seven techniques — test design, data-quality validation, risk management,
+fault tree analysis, V&V planning, traceability and FRACAS — each with its
+numbered procedure, the real code in this repository that implements it, the
+threshold it is judged against, and an explicit statement of what it does *not*
+establish. It is written to be useful to anyone who has built something
+substantial and cannot yet name the methods they used.
+
+It also gives the **domain swap**: the same step with the subject changed from
+market data to vehicles, aircraft, robots or a production line. The method does
+not change; only the nouns do.
+
+---
+
+## 1. The problem
+
+A decision system that cannot be interrogated while it is running has two
+failure modes, and they are opposite:
+
+1. **Unwarranted trust.** The operator cannot see that a model is extrapolating
+   beyond its validated envelope, so they act on it anyway.
+2. **Unwarranted rejection.** The operator sees an unexplained intervention,
+   assumes malfunction, and disables the safeguard.
+
+Both are documented consequences of poorly calibrated automation transparency
+[20,21]. Lee and See's synthesis makes the mechanism explicit: appropriate
+reliance depends on the operator being able to see the automation's **purpose,
+process and performance** [20]. Absent that, trust is not calibrated — it is
+merely high or low.
+
+This is sharper for statistical pipelines than for deterministic control, for
+the reason ISO 21448 (SOTIF) exists [15]: the hazard is not component failure
+but **functional insufficiency** — the system operating exactly as specified and
+still being wrong, because the specification or the fitted model did not cover
+the situation. A fault-based safety frame such as ISO 26262 [16] does not reach
+that class of hazard, and no amount of road-style accumulation testing resolves
+it either [19].
+
+**The claim of this project:** the artifact that demonstrates a statistical
+system is behaving acceptably should be a continuously-rendered argument, not a
+document written once and a log nobody opens.
+
+---
+
+## 2. Related work, and the gap
+
+### 2.1 Transparency artifacts — right content, wrong tense
+
+Model Cards [1] standardise what must be disclosed about a trained model:
+intended use, training conditions, and disaggregated performance. Datasheets for
+Datasets [2] does the same for data provenance. FactSheets [3] reframes both as a
+*supplier's declaration of conformity*, borrowing an instrument from regulated
+manufacturing. All three establish disclosure as an obligation rather than a
+courtesy — and all three produce a **static document describing a past
+evaluation**. None updates as the system runs.
+
+### 2.2 Interpretability — the argument for showing the real path
+
+Rudin argues that post-hoc explanations of black boxes are approximations that
+can be systematically wrong, and that high-stakes decisions should use models
+interpretable by construction [4]. Lipton's decomposition of "interpretability"
+into simulatability, decomposability and algorithmic transparency [5] gives the
+precision this project needs: **what is surfaced here is decomposability and
+algorithmic transparency of the pipeline** — the actual arithmetic that ranked
+the candidates — not a saliency-style story told about it afterwards.
+
+This is why every variable in the interface is tagged by the role it plays:
+`ranks` (enters the score), `gate` (can refuse, does not rank), or `recorded`
+(stored, affects nothing today). Most are `recorded`, and saying so is the point.
+
+### 2.3 Production readiness and ML testing — the enumerable part
+
+The ML Test Score [6] defines 28 concrete tests and monitors across data, model,
+infrastructure and monitoring, and scores a system on how many it satisfies.
+This is the closest thing ML has to a readiness gate in the V&V sense, and it
+establishes that **validation state is an enumerable, scoreable thing** — which
+is precisely what makes it renderable. Hidden Technical Debt [7] names the
+failure modes conventional software practice misses: entanglement, undeclared
+consumers, hidden feedback loops. Zhang et al.'s survey [8] maps ML testing onto
+conventional testing vocabulary — oracles, adequacy criteria, mutation — and
+Breck et al. [9] show that most production incidents originate in **input**
+validation rather than model validation.
+
+### 2.4 Runtime assurance — bounding what you cannot verify
+
+Sha's Simplex architecture [10] is the canonical pattern: pair an unverified
+high-performance controller with a simple verified safety controller and a
+decision module that switches between them. ASTM F3269 [11] formalises this as
+run-time assurance and makes it certifiable practice, not just a paper. In
+robotics, Rahman et al. survey runtime detection of a perception model operating
+outside its competence [12], and runtime verification provides the formal
+vocabulary for checking an execution trace against a property [13].
+
+The gate chain in this system is a run-time assurance layer in exactly this
+sense. **What is unusual is that the decision module is rendered for a human
+rather than only acted upon.**
+
+### 2.5 Assurance cases — the argument as the deliverable
+
+UL 4600 [14] requires the developer of an autonomous product to produce a
+*safety case*: a structured argument with evidence, rather than conformance to a
+prescriptive process. AMLAS [17] gives a six-stage methodology for building such
+a case around an ML component, and GSN [18] supplies the notation — goals,
+strategies, solutions, context, assumptions. Burton et al. [19b] work an
+assurance argument through for an ML perception function and are candid about
+where the evidence is weakest: dataset coverage, generalisation claims, and the
+absence of a specification to verify against.
+
+Read through this lens, the interface here is a **live GSN fragment**: gates are
+goals, displayed readings are solutions, and the operating-envelope statements
+are context and assumptions.
+
+### 2.6 Human factors — what the display is actually for
+
+Endsley's model defines situation awareness as perception, comprehension and
+projection [22]. Chen et al.'s SAT model operationalises this for autonomous
+agents: an agent should communicate (L1) its current goal and action, (L2) its
+reasoning and constraints, and (L3) its projected outcome with uncertainty [23].
+That is a specification, not a metaphor, and the interface is organised along
+it. A cautionary empirical result [24] shows that displaying **confidence**
+improved trust calibration while local feature explanations did not reliably do
+so — so calibrated odds and validation state are given more prominence than
+per-decision narratives.
+
+### 2.7 Methodology pitfalls the interface is designed to expose
+
+Kaufman et al. formalise leakage as information about the target that would not
+legitimately be available at prediction time [25]; Kapoor and Narayanan find
+leakage-driven irreproducibility across 294 papers in 17 fields [26]. In the
+financial-evaluation literature specifically, Bailey and López de Prado show
+that a Sharpe ratio must be corrected for the number of configurations tried
+[27], and that the probability of backtest overfitting is itself estimable [28] —
+with the stronger claim that **failing to report trial count is a form of
+misrepresentation**, not a stylistic omission.
+
+### 2.8 Observability — inspectable on demand, not a fixed dashboard
+
+Shankar and Parameswaran argue that ML pipelines need *observability* — the
+ability to ask arbitrary post-hoc questions about why a pipeline behaved as it
+did — rather than a fixed set of pre-chosen metrics [29]. Interview work with
+MLOps engineers [30] and the broader deployment survey [31] document what
+practitioners actually need to see.
+
+### 2.9 The gap
+
+The transparency literature (§2.1) is **offline and document-shaped**. The
+runtime literature (§2.4, §2.8) is **machine-facing**: monitors that fire, not
+arguments that are read. The human-factors work (§2.6) specifies *what* an agent
+should communicate but is demonstrated on control and robotics tasks, not on
+statistical model-selection pipelines.
+
+This project occupies the intersection: **an assurance-style argument over a
+statistical pipeline, rendered continuously for a human operator.** It is a
+systems-engineering contribution rather than a novel algorithm, and it is
+offered as a worked instance rather than a general method.
+
+---
+
+## 3. System
+
+```mermaid
+flowchart TB
+  subgraph SENSE["sense"]
+    A["public price feed<br/>Coinbase, Kraken fallback"] --> B["universe ~50 instruments"]
+  end
+  subgraph DECIDE["decide — SAT level 1"]
+    B --> C["6 strategies<br/>generate candidates"]
+    C --> D["score, rank the field"]
+  end
+  subgraph ASSURE["assure — run-time assurance layer"]
+    D --> E["ordered gate chain<br/>exposure · liquidity · correlation<br/>odds-to-target · day loss budget"]
+    E -->|blocked| G["rejection recorded<br/>with limit, reading, verdict"]
+  end
+  subgraph ACT["act"]
+    E -->|passed| F["simulated fill"]
+    F --> H["position management<br/>dynamic target · stop · time budget"]
+    H --> I["closed trade"]
+  end
+  subgraph VERIFY["verify — SAT levels 2 and 3"]
+    I --> J["model arena<br/>5 entrants, held out"]
+    I --> K["exit lab<br/>counterfactual replay"]
+    I --> L["data invariants<br/>liveness of the safeguards"]
+  end
+  J -.->|evidence, never an override| C
+  K -.-> C
+  G --> M["operator interface"]
+  J --> M
+  L --> M
 ```
 
-Or launch it from Control Deck (registered as **TradeCrypto**, category Trading).
+The dotted edges are load-bearing: **measurement never silently rewires
+trading.** A model that scores well is reported as evidence for a change, not
+applied as one. This preserves the property that the acting path is the one that
+was verified — the same separation Simplex [10] and F3269 [11] rely on.
 
-Default mode is `paper`. Real orders are structurally impossible until `.env` contains
-`TC_EXECUTION_MODE=mcp` **and** `TC_LIVE_CONFIRM=I_ACCEPT_REAL_MONEY_RISK`.
+```
+tradecrypto/
+├── backend/app/
+│   ├── strategy/        22 modules — the decision rules
+│   │   ├── time_budget.py      P(target reached | ratio, age, P&L),
+│   │   │                       from 4.9M historical observations
+│   │   ├── dynamic_target.py   a target that re-prices as odds decay
+│   │   └── hour_profile.py     empirical-Bayes shrinkage per hour;
+│   │                           reports a FLAT profile when the
+│   │                           between-hour variance is noise
+│   ├── risk/guards.py          the ordered gate chain + day stop
+│   ├── execution/
+│   │   ├── broker.py           paper + advisory only
+│   │   ├── venue_fees.py       published fee schedule — the 1.90%
+│   │   └── no_broker.py        the deliberate absence, made explicit
+│   ├── research/        36 modules — the harness
+│   │   ├── model_arena.py      5 entrants, time-split, bootstrap CIs
+│   │   ├── decision_tree.py    the live transparency endpoint
+│   │   ├── exit_lab.py         counterfactual replay of exit rules
+│   │   ├── invariants.py       data-integrity checks with teeth
+│   │   └── stats.py            bootstrap CI, deflated Sharpe, PBO
+│   └── core/
+│       ├── liveness.py         has each safeguard ever actually FIRED?
+│       └── vault.py            append-only, hash-chained audit log
+├── backend/tests/       58 files · 541 tests
+└── frontend/src/        37 components — the interface
+```
 
-## The idea
+**116 Python files / 34,029 lines · 541 tests / 7,910 lines · 37 UI components.**
 
-Robinhood's agentic trading is an OAuth-gated **MCP server**
-(`https://agent.robinhood.com/mcp/trading`) — not a keyed REST API. It can place crypto orders,
-but it cannot short, it keeps no history for research, its latency is a network round trip, and
-its costs are embedded in the spread. Those four facts shape everything here:
+---
 
-- **Research runs on a free public exchange feed** (Coinbase, cross-checked against Kraken),
-  and the engine continuously measures the *basis* between that feed and Robinhood's real fills.
-  That basis is not noise — it is the cost of trading, and it is the number that decides whether
-  any strategy is viable.
-- **Execution is pluggable**: `paper` (simulated fills degraded by the measured cost model),
-  `advisory` (the engine emits an order ticket a human or a Claude session executes), and
-  `mcp` (direct, gated behind explicit confirmation).
-- **Nothing trades without clearing the cost hurdle.** Every signal carries an expected edge with
-  a confidence interval; if the interval includes zero, the edge is set to zero and no order is
-  placed.
+## 4. What is surfaced, and why
 
-## The dashboard
+Organised along SAT levels [23], with Lee and See's purpose/process/performance
+triad [20] as the acceptance criterion.
 
-| Page | What it answers |
+| SAT level | Rendered | Grounding |
+|---|---|---|
+| **L1 — goal and action** | Which instruments were considered, which passed, which was funded, and the scoring expression that ranked them | decomposability [5] |
+| **L2 — reasoning and constraints** | Every variable with its live value and role (`ranks` / `gate` / `recorded`); every gate with its limit, reading and verdict; the model competition with held-out AUC and CI | ML Test Score as enumerable state [6]; GSN goals and solutions [18] |
+| **L3 — projection with uncertainty** | Probability the target is reached given ratio, age and current P&L; time-to-target quantiles; the explicit statement when no model beats chance | calibrated confidence over explanation [24] |
+
+Three design rules follow from the literature and are enforced in code:
+
+1. **Show the real path, not a story about it** [4,5]. The displayed expression
+   is the one that executed.
+2. **Show refusals, not only successes** [21]. Every blocked candidate records
+   why, because disuse caused by unexplained interventions is a documented
+   failure mode.
+3. **Show the limits of the evidence** [19b,26,27]. Trial counts, confidence
+   intervals and "not enough data yet" are first-class display states.
+
+---
+
+## 5. Validation methodology
+
+### 5.1 A control with no variables in it
+
+For each strategy, five models are fitted on its own past signals and scored on
+held-out data:
+
+| entrant | role |
 |---|---|
-| **Overview** | What mode am I in, what has the engine done, how much risk headroom is left |
-| **Trade Desk** | Advisory mode: the engine posts an entry ticket, you execute it by hand, you report the fill, and it posts the exit ticket when the time comes. Also where you set a **trade budget** ("take 2 trades today") |
-| **Ledger** | Per-strategy P&L book with a paper / advisory / live toggle, a date filter, daily P&L bars and a cumulative curve |
-| **Attention** | Which one or two coins are getting today's attention, and whose run is already late |
-| **False Breakouts** | The trap detector: level broke — is it real? Coefficients, calibration, and a live per-coin check |
-| **News & Research** | Market and per-coin news used defensively, plus every paper behind this system and what it's used for |
-| **Universe** | Why each coin is tracked, traded or dropped — every gate with its actual value; plus macro series and their measured correlation to BTC |
-| **Automation** | Every research job, when it last ran, what it found, and pause / resume / run-now |
-| **Data** | Multi-year backfill, coverage per coin, storage projections, and a raw-bar browser with date filters |
-| **Model Lab** | One strategy end to end: data, train/validation/test split, what was fitted, every acceptance gate, verdict, and what would have to change |
-| **Cost Lab** | What a round trip actually costs — globally and **per coin** — the number everything else depends on |
-| **Movers** | The top-movers screen, with each row's spread next to its move |
-| **Research** | Cost sensitivity → backtest → walk-forward, in that order |
-| **Strategies** | Each hypothesis, its fitted coefficients, and its earned capital allocation |
-| **Models** | Every model card: formula, assumptions, failure modes, citations |
-| **Journal** | Full audit trail, including the signals that were rejected and why |
-| **Risk** | Live guard status and the kill switch |
+| all variables | the widest model |
+| all variables, heavily regularised | wins when the wide model memorised |
+| strongest 5, refitted | fewer parameters, less room to overfit |
+| single best variable | if this ties, the rest are decoration |
+| **no variables at all** | **the control** |
 
-Any number with a **"how is this computed?"** button opens the model card behind it.
+The control scores AUC 0.500 by construction. Without it in the table, the best
+of five uninformative models reads as a winner. This is the multiple-comparison
+discipline of [27,28] applied at model-selection time.
 
-## The four strategies
+### 5.2 Split by time, never shuffled
 
-The operator's own ideas, each a falsifiable hypothesis with the same gates — see
-[`docs/STRATEGIES.md`](docs/STRATEGIES.md):
+Oldest 70% trains; newest 30% is held out and read once. Shuffling a price
+series permits learning from an afternoon to predict that morning — leakage in
+the formal sense of [25], and the single most common source of the
+irreproducibility documented in [26].
 
-- `fast_flip` — quick in and out, 5–30 minutes. Included as the **control**.
-- `forced_momentum` — hold longer when the move is efficient (Kaufman Efficiency Ratio) and
-  volume confirms it.
-- `regime_swing` — trade only when breadth **and** the leader agree the market is risk-on;
-  the "early morning" filter is applied only for hours that survive FDR correction.
-- `lead_lag_rotation` — be early to the coins that follow BTC/ETH, where the lag is
-  statistically established rather than assumed.
+### 5.3 Crowned on the interval, not the point estimate
 
-## Statistical machinery
+The leading entrant scored **AUC 0.786**, with a 95% bootstrap interval of
+**[0.40, 1.00]** on 11 held-out observations. The system reports **no champion**.
+Ranking the entrants against one another in that regime is ranking noise.
 
-Implemented and unit-tested in `backend/app/research/stats.py`:
+### 5.4 Effective sample size under correlation
 
-- **Probabilistic and Deflated Sharpe** (Bailey & López de Prado 2012, 2014) — corrects for
-  skew, kurtosis, and for how many configurations were searched.
-- **Probability of Backtest Overfitting** via CSCV (Bailey, Borwein, López de Prado & Zhu 2017).
-- **Stationary block bootstrap** (Politis & Romano 1994) with **BCa** intervals (Efron 1987).
-- **Minimum track record length** — how many trades before a Sharpe means anything.
-- **Bayesian edge posteriors** (Normal-Inverse-Gamma, Beta-Binomial) driving capital allocation.
-- **Fractional Kelly on the lower confidence bound** of the edge, never the point estimate.
-- **Assumption tests** (Jarque-Bera, Ljung-Box, Levene) surfaced next to the results they qualify.
-- **Benjamini-Hochberg FDR control** for calendar effects and lead-lag discovery, because 168
-  hour/weekday buckets and 500 (coin, lag) pairs guarantee false positives at any fixed alpha.
-- **Per-coin cost estimation** — a log-log model of Robinhood's markup on reference spread,
-  volatility, liquidity and tick size, with empirical-Bayes shrinkage toward real fills.
+Eleven concurrent positions had an average pairwise correlation of **+0.43**.
+Effective independent bets, `N / (1 + (N−1)r)`: **2.1**. Every per-trade
+significance figure computed before this correction was overstated by
+approximately that factor.
 
-## Layout
+### 5.5 Degenerate-variance handling
 
-```
-backend/app/
-  config.py              all risk limits; live trading gated here
-  core/db.py             SQLite schema — the single source of truth
-  core/registry.py       model cards (the anti-black-box layer)
-  data/feeds.py          Coinbase + Kraken adapters, cross-checking
-  data/universe.py       tradeable universe + movers screen
-  execution/cost_model.py  the Cost Lab
-  execution/broker.py    paper / advisory / MCP brokers
-  execution/engine.py    the live loop
-  strategy/              falsifiable hypotheses, one file each
-  research/stats.py      the statistics
-  research/backtest.py   event-driven backtest, walk-forward, cost sensitivity
-  risk/guards.py         hard pre-trade checks + kill switch
-  feedback/loop.py       reward/penalty attribution and capital reallocation
-frontend/src/            React + Vite dashboard
-docs/EXPECTATIONS.md     the arithmetic
-```
+A confidence score of the form `mean / (sd/√n)` divides by zero when all
+observations are identical, and the obvious guard returns the score of a coin
+flip for the *most certain* result in the sample — so a strategy losing 3% on all
+20 trades scored "undecided" and would never have been retired.
 
-## Getting history
+---
 
-```bash
-# from the Data page, or:
-curl -X POST 127.0.0.1:8006/api/v1/backfill/start -H 'content-type: application/json' \
-     -d '{"granularity": 3600, "days": 1460}'
-```
+## 6. Results
 
-Roughly 9,000 requests, 15-25 minutes, ~364 MB for four years of hourly bars across 80
-coins. Daily is instant and tiny. **One-minute data cannot be backfilled from any public
-venue** — it is collected going forward only, which is a real constraint on the fast
-strategies and an argument for working on the longer-horizon ones first.
-
-## Connecting Robinhood
-
-The agentic endpoint is an OAuth MCP for an interactive client, so this app cannot call
-it. The bridge runs the other way: a Claude Code session holding the MCP reads Robinhood
-and POSTs into the local API. Full instructions, including the exact prompts to paste, are
-in [`docs/ROBINHOOD_SYNC.md`](docs/ROBINHOOD_SYNC.md). Nothing on that path can place an order.
-
-## Does the laptop have to stay on?
-
-Depends on which part you mean.
-
-| | Needs the app running? |
+| measured | value |
 |---|---|
-| **Backfilled history** (daily / hourly / 15-min) | **No.** One download, stored on disk forever. Sleep, reboot, close the lid — it stays. |
-| **1-minute bars going forward** | **Yes.** Public feeds don't sell minute history, so the only way to have it is to be running when it happens. |
-| **Paper trading and P&L** | **Yes.** The engine books trades only while it runs. |
-| **Live quotes, signals, tickets** | **Yes.** |
+| Round-trip cost, venue studied | **~1.90%** (0.95%/side, embedded in the spread — no line item states it) |
+| Typical daily range of instruments traded | **2–3%** |
+| Best exit rule found, 106 trades | **+0.61%** per trade |
+| Perfect-hindsight ceiling, same trades | **+7.53%** |
+| Best entry model, held-out AUC | **0.786**, 95% CI **[0.40, 1.00]** — includes chance |
+| Effective independent bets from 11 positions | **2.1** |
 
-So the swing and rotation strategies can be researched entirely on backfilled hourly data with
-the laptop off. Only the fast strategies and live paper-trading need uptime.
+**No strategy clears its own transaction cost.** A signal must be right by more
+than an entire day's normal move before it earns anything, and none is.
 
-macOS sleeps aggressively on battery. To keep a session running:
+This is reported as the result rather than buried. An evaluation that models
+commission and ignores the spread produces a profit that cannot exist — the
+failure mode [27,28] describe as pseudo-mathematics, and the reason the cost
+model is a first-class module rather than a constant.
+
+---
+
+## 7. Threats to validity
+
+- **Single venue, single asset class.** Cost structure and microstructure are
+  specific to one retail venue over one period.
+- **Sample size.** Held-out slices are small; §5.3 is the consequence, not an
+  aside.
+- **Survivorship in the instrument universe.** The traded set is drawn from
+  currently-listed instruments.
+- **The transparency claim is unevaluated.** Doshi-Velez and Kim [32]
+  distinguish application-grounded, human-grounded and functionally-grounded
+  evaluation of interpretability. This project offers only a
+  functionally-grounded argument — the information is present and correct. **No
+  user study was run**, so no claim is made that operator decisions improved.
+- **Simulated fills.** Paper execution models the spread but not queue position,
+  partial fills or market impact.
+
+---
+
+## 8. Failure-driven testing
+
+Most of the 541 tests exist because something broke. Each encodes one incident:
+symptom, root cause, and the check that now catches it — the practice [6]
+formalises as a readiness rubric and [7] explains the need for.
+
+| failure | lesson |
+|---|---|
+| A rate tuned on hourly bars, applied per tick | the live loop ran 60× faster than the backtest; correct in every test, because the tests also walked bars |
+| `git` cannot store an empty directory | the launcher died on a fresh clone, at a path present on every developer machine |
+| A missing binary wheel is not an error | the installer silently compiled for 15+ minutes, then failed |
+| A hand-written list of "the compiled packages" | missed the transitive dependency nobody lists — the next failure was in it |
+| A string prefix is not a parent directory | a correctly-placed audit log reported itself compromised |
+| Sample data with backdated timestamps | aged every "has this run lately" check; a five-minute-old install accused itself |
+| An undefined name inside a broad `try/except` | silent forever: the feature wrote nothing and nothing ever failed |
+
+The last is why an undefined-name gate runs over every language in the project.
+Undefined names only — a linter that also argues about style is switched off
+within a week and takes the useful rule with it.
+
+---
+
+## 9. Running it
+
+Python 3.11–3.14. Node optional: a built dashboard ships in the repository and
+the backend serves it when no toolchain is present.
 
 ```bash
-caffeinate -dimsu     # in its own terminal; Ctrl-C to release
+git clone https://github.com/pouriaetab/tradecrypto.git ~/tradecrypto
+cd ~/tradecrypto && bash run.sh
 ```
 
-Gaps from sleep are not silently smoothed over — the Data page shows a **completeness %** per
-coin so missing stretches are visible.
-
-## Running it reliably (and not filling your disk)
+No account, no API key, no credentials — prices come from public endpoints. On
+first run it offers a demo: the real strategies replayed over real stored prices
+with the real cost model, so every view is populated before any live data exists.
 
 ```bash
-./scripts/install-autostart.sh      # start at login, restart automatically if it dies
-./scripts/install-autostart.sh remove
-tail -f logs/tradecrypto.log
+cd backend && .venv/bin/python -m pytest -q     # 541 tests
+bash run.sh --doctor                            # environment diagnosis
 ```
 
-That installs a macOS LaunchAgent pointing at `scripts/supervise.sh`, which restarts the app
-on any unexpected exit, backs off if it is crash-looping, and rotates its log at 20 MB.
+---
 
-**Memory.** The process watches its own RSS and exits with code 3 at `TC_MEMORY_CEILING_MB`
-(default 1500). A clean exit is restartable; an OS kill is not. Overview → Health shows
-current, peak and MB/hour growth — a rate that does not flatten means something is
-accumulating.
+## 10. What is deliberately absent
 
-**Disk.** A daily `housekeeping` job prunes 1-minute bars after 45 days and quotes after 14,
-checkpoints the WAL, and compacts the file when it is worth it. **Hourly and daily bars are
-kept forever** — that is the history everything is validated against, and it grows slowly.
-Preview what retention would remove with `GET /api/v1/housekeeping/preview`.
+The broker client, the order-placing path and the live execution mode were
+removed before publication; `backend/app/execution/no_broker.py` is what the API
+layer imports in their place. A research tool that can move real money is a
+liability rather than a feature, and *"it defaults to paper"* is a weaker
+guarantee than not possessing the capability.
 
-## Kill switch
+Not financial advice and not a trading system. See [DISCLAIMER.md](DISCLAIMER.md).
+MIT licensed, **no warranty** — see [LICENSE](LICENSE).
 
-```bash
-touch data/KILL_SWITCH     # nothing can trade
-rm data/KILL_SWITCH        # released
-```
+---
 
-It is a file, not a flag, so it works when the web UI does not, and it survives a restart.
+## References
+
+1. Mitchell, M. et al. (2019). *Model Cards for Model Reporting.* ACM FAT\*. https://arxiv.org/abs/1810.03993
+2. Gebru, T. et al. (2021). *Datasheets for Datasets.* Communications of the ACM 64(12). https://arxiv.org/abs/1803.09010
+3. Arnold, M. et al. (2019). *FactSheets: Increasing Trust in AI Services through Supplier's Declarations of Conformity.* IBM J. Res. & Dev. 63(4/5). https://arxiv.org/abs/1808.07261
+4. Rudin, C. (2019). *Stop Explaining Black Box Machine Learning Models for High Stakes Decisions and Use Interpretable Models Instead.* Nature Machine Intelligence 1:206–215. https://www.nature.com/articles/s42256-019-0048-x
+5. Lipton, Z. C. (2018). *The Mythos of Model Interpretability.* ACM Queue 16(3). https://arxiv.org/abs/1606.03490
+6. Breck, E. et al. (2017). *The ML Test Score: A Rubric for ML Production Readiness and Technical Debt Reduction.* IEEE Big Data. https://ieeexplore.ieee.org/document/8258038
+7. Sculley, D. et al. (2015). *Hidden Technical Debt in Machine Learning Systems.* NeurIPS 28. https://papers.nips.cc/paper/5656-hidden-technical-debt-in-machine-learning-systems
+8. Zhang, J. M. et al. *Machine Learning Testing: Survey, Landscapes and Horizons.* IEEE TSE. doi:10.1109/TSE.2019.2962027. https://arxiv.org/abs/1906.10742
+9. Breck, E. et al. (2019). *Data Validation for Machine Learning.* MLSys. https://mlsys.org/Conferences/2019/doc/2019/167.pdf
+10. Sha, L. (2001). *Using Simplicity to Control Complexity.* IEEE Software 18(4):20–28. https://ieeexplore.ieee.org/document/936213
+11. ASTM International (2021). *F3269-21: Standard Practice for Methods to Safely Bound Behavior of Aircraft Systems Containing Complex Functions Using Run-Time Assurance.* https://store.astm.org/f3269-21.html
+12. Rahman, Q. M., Corke, P., Dayoub, F. (2021). *Run-Time Monitoring of Machine Learning for Robotic Perception: A Survey of Emerging Trends.* IEEE Access. https://arxiv.org/abs/2101.01364
+13. Bartocci, E. et al. (2018). *Introduction to Runtime Verification.* In Lectures on Runtime Verification, LNCS 10457. https://link.springer.com/chapter/10.1007/978-3-319-75632-5_1
+14. Underwriters Laboratories (2023). *UL 4600: Standard for Evaluation of Autonomous Products*, 3rd ed. https://ulse.org/focus-areas/travel-safety/autonomous-vehicles/
+15. ISO (2022). *ISO 21448:2022 — Road vehicles: Safety of the Intended Functionality (SOTIF).* https://www.iso.org/standard/77490.html
+16. ISO (2018). *ISO 26262:2018 — Road vehicles: Functional safety.* https://www.iso.org/standard/68383.html
+17. Hawkins, R. et al. (2021). *Guidance on the Assurance of Machine Learning in Autonomous Systems (AMLAS).* University of York. https://arxiv.org/abs/2102.01564
+18. SCSC Assurance Case Working Group (2021). *GSN Community Standard v3 (SCSC-141C).* https://scsc.uk/scsc-141c
+19. Koopman, P., Wagner, M. (2016). *Challenges in Autonomous Vehicle Testing and Validation.* SAE 2016-01-0128. https://www.sae.org/publications/technical-papers/content/2016-01-0128/
+19b. Burton, S., Gauerhof, L., Heinzemann, C. (2017). *Making the Case for Safety of Machine Learning in Highly Automated Driving.* SAFECOMP Workshops, LNCS 10489. https://link.springer.com/chapter/10.1007/978-3-319-66284-8_1
+20. Lee, J. D., See, K. A. (2004). *Trust in Automation: Designing for Appropriate Reliance.* Human Factors 46(1):50–80. https://journals.sagepub.com/doi/10.1518/hfes.46.1.50_30392
+21. Parasuraman, R., Riley, V. (1997). *Humans and Automation: Use, Misuse, Disuse, Abuse.* Human Factors 39(2):230–253. https://journals.sagepub.com/doi/10.1518/001872097778543886
+22. Endsley, M. R. (1995). *Toward a Theory of Situation Awareness in Dynamic Systems.* Human Factors 37(1):32–64. https://journals.sagepub.com/doi/10.1518/001872095779049543
+23. Chen, J. Y. C. et al. (2018). *Situation Awareness-Based Agent Transparency and Human-Autonomy Teaming Effectiveness.* Theoretical Issues in Ergonomics Science 19(3):259–282. https://www.tandfonline.com/doi/full/10.1080/1463922X.2017.1315750
+24. Zhang, Y., Liao, Q. V., Bellamy, R. K. E. (2020). *Effect of Confidence and Explanation on Accuracy and Trust Calibration in AI-Assisted Decision Making.* ACM FAT\*. https://arxiv.org/abs/2001.02114
+25. Kaufman, S. et al. (2012). *Leakage in Data Mining: Formulation, Detection, and Avoidance.* ACM TKDD 6(4). https://dl.acm.org/doi/10.1145/2382577.2382579
+26. Kapoor, S., Narayanan, A. (2023). *Leakage and the Reproducibility Crisis in Machine-Learning-Based Science.* Patterns 4(9). https://arxiv.org/abs/2207.07048
+27. Bailey, D. H., López de Prado, M. (2014). *The Deflated Sharpe Ratio.* J. Portfolio Management 40(5):94–107. https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2460551
+28. Bailey, D. H. et al. (2017). *The Probability of Backtest Overfitting.* J. Computational Finance 20(4):39–69. https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2326253
+29. Shankar, S., Parameswaran, A. (2022). *Towards Observability for Production Machine Learning Pipelines.* PVLDB 15(13). https://www.vldb.org/pvldb/vol15/p4015-shankar.pdf
+30. Shankar, S. et al. (2024). *"We Have No Idea How Models will Behave in Production until Production": How Engineers Operationalize Machine Learning.* ACM CSCW. https://arxiv.org/abs/2403.16795
+31. Paleyes, A., Urma, R.-G., Lawrence, N. D. (2022). *Challenges in Deploying Machine Learning: A Survey of Case Studies.* ACM Computing Surveys 55(6). https://arxiv.org/abs/2011.09926
+32. Doshi-Velez, F., Kim, B. (2017). *Towards A Rigorous Science of Interpretable Machine Learning.* arXiv preprint. https://arxiv.org/abs/1702.08608
