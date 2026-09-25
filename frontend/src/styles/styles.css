@@ -827,3 +827,23 @@ th.drop-here { box-shadow: inset 3px 0 0 var(--accent); }
 .rm-act { flex: 0 0 auto; padding-top: 2px; }
 .rm-sep { height: 1px; background: var(--border, #2a3140); margin: 14px 0 4px; }
 @media (max-width: 640px) { .rm-row { flex-direction: column; } }
+
+/* ── the day's stop ──────────────────────────────────────────────────────── */
+.ds-state { font-size: 13px; line-height: 1.6; margin-bottom: 10px; }
+.ds-bar-wrap { margin-bottom: 12px; }
+.ds-bar { height: 8px; border-radius: 5px; overflow: hidden;
+          background: var(--surface-2, rgba(255,255,255,.08)); }
+.ds-fill { height: 100%; background: var(--pos, #3fb950); transition: width .4s ease; }
+.ds-fill.warn { background: var(--warning, #d29922); }
+.ds-fill.full { background: var(--neg, #f85149); }
+.ds-bar-k { display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px; }
+.ds-limit { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.ds-k { font-size: 12.5px; }
+.ds-in { width: 76px; padding: 4px 7px; font-size: 13px; text-align: right;
+         border-radius: 6px; border: 1px solid var(--border, #2a3140);
+         background: var(--surface-2, rgba(255,255,255,.05)); color: inherit;
+         font-variant-numeric: tabular-nums; }
+.ds-suffix, .ds-eq { font-size: 12.5px; }
+.ds-note { font-size: 12px; line-height: 1.55; margin: 6px 0 12px; max-width: 74ch; }
+.ds-acts { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 2px; }
+.ds-acts button { padding: 7px 13px; font-size: 13px; }

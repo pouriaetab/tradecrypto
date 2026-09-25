@@ -311,9 +311,67 @@ def daily_loss_limit_usd() -> float:
     """
     from app.core import mode as mode_mod
     s = get_settings()
-    pct_limit = mode_mod.get_equity() * s.max_daily_loss_pct / 100.0
+    pct = daily_loss_pct()
+    pct_limit = mode_mod.get_equity() * pct / 100.0
     hard = float(s.max_daily_loss_usd or 0.0)
     return min(pct_limit, hard) if hard > 0 else pct_limit
+
+
+_PCT_KEY = "daily_loss_pct_override"
+
+# A cap of zero is not caution, it is a desk that halts on the first cent. A cap
+# of 90% is not a cap. Both ends are refused rather than silently clamped.
+PCT_MIN, PCT_MAX = 0.5, 50.0
+
+
+def daily_loss_pct() -> float:
+    """The day's stop as a percent of stake, changeable while running.
+
+    It used to live only in `.env`, which meant changing it was: find the file,
+    edit it, restart the app. The operator's standing instruction is that
+    everything should be doable in the app, and a risk limit you have to stop
+    the desk to adjust is one people work around instead of adjusting.
+
+    The override lives in app_state and wins over `.env` when present. Clearing
+    it falls back to the file, so the .env value is still the documented default
+    rather than being overwritten by a click.
+    """
+    row = db.query_one("SELECT value FROM app_state WHERE key=?", (_PCT_KEY,))
+    if row and row["value"]:
+        try:
+            v = float(row["value"])
+            if PCT_MIN <= v <= PCT_MAX:
+                return v
+        except (TypeError, ValueError):
+            pass
+    return float(get_settings().max_daily_loss_pct)
+
+
+def set_daily_loss_pct(pct: float | None) -> dict:
+    """Set the day's stop, or pass None to go back to the .env default."""
+    from app.core import mode as mode_mod
+    if pct is None:
+        db.execute("DELETE FROM app_state WHERE key=?", (_PCT_KEY,))
+        db.log_event("WARNING", "risk",
+                     "daily loss cap reset to the .env default "
+                     f"({get_settings().max_daily_loss_pct}%)")
+        return {"pct": daily_loss_pct(), "source": "env"}
+    v = float(pct)
+    if not (PCT_MIN <= v <= PCT_MAX):
+        raise ValueError(
+            f"the day's stop must be between {PCT_MIN}% and {PCT_MAX}% of the "
+            f"stake. {v}% is {'not a cap at all' if v > PCT_MAX else 'a halt on the first small loss'}."
+        )
+    before = daily_loss_limit_usd()
+    db.execute("INSERT INTO app_state(key, value, updated_ts) VALUES (?,?,?) "
+               "ON CONFLICT(key) DO UPDATE SET value=excluded.value, "
+               "updated_ts=excluded.updated_ts",
+               (_PCT_KEY, str(v), time.time()))
+    after = mode_mod.get_equity() * v / 100.0
+    db.log_event("WARNING", "risk",
+                 f"daily loss cap changed by the operator: {v}% of stake "
+                 f"(${before:.2f} -> ${after:.2f})")
+    return {"pct": v, "source": "operator", "was_usd": before, "now_usd": after}
 
 
 
@@ -695,6 +753,12 @@ def status(mode: str = "paper") -> dict:
                                if s.kill_switch_file.exists() else None),
         "realised_pnl_today_usd": loss,
         "daily_loss_limit_usd": limit_usd,
+        "daily_loss_pct": daily_loss_pct(),
+        "daily_loss_pct_source": (
+            "operator" if db.query_one(
+                "SELECT 1 FROM app_state WHERE key=?", (_PCT_KEY,)) else "env"),
+        "daily_loss_pct_bounds": [PCT_MIN, PCT_MAX],
+        "stake_usd": mode_mod.get_equity(),
         "daily_loss_headroom_usd": limit_usd + loss,
         "daily_loss_cap_waived_today": daily_loss_cap_waived_today(),
         # The book-level ceiling, as the pre-trade check sees it: the drawdown

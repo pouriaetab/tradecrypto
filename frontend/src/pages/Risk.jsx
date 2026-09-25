@@ -1,5 +1,6 @@
 import React from 'react'
 import { api, fmt } from '../lib/api.js'
+import DayStop from '../components/DayStop.jsx'
 import { Banner, Card, Hint, Info, Stat, Table, useAsync } from '../components/ui.jsx'
 
 /* An elapsed time a person reads at a glance: "3h 12m", "48m", "2d 4h".
@@ -54,6 +55,11 @@ export default function Risk({ onModel }) {
   return (
     <>
       <h1>Risk</h1>
+
+      {/* Everything about stopping and restarting, in one card with the current
+          numbers. The buttons below still exist for the detail; this is the one
+          a person looks for. */}
+      <DayStop onChanged={() => r.reload()} />
       <p className="sub">
         Every order passes all of these checks or it does not exist.<Info text="The kill switch is a file on disk, so it keeps working even if this page does not, and it survives a restart." />
       </p>
@@ -85,9 +91,9 @@ export default function Risk({ onModel }) {
       )}
 
       <div className="row" style={{ marginBottom: 14 }}>
-        <button className="danger" onClick={onKill}>engage kill switch</button>
-        <button onClick={onRelease}
-                title="Removes the kill-switch file so new positions may open again. If today's loss is still past the daily cap, this also waives that cap for the rest of today, so the switch does not re-arm two minutes later. It does nothing if the switch is not engaged — and says so.">release</button>
+        {/* The clearer pair lives in "The day's stop" at the top of this page.
+            Two sets of the same two buttons on one screen is a question about
+            which one is real. */}
         {note && <span className={note.kind === 'bad' ? 'neg' : note.kind === 'good' ? 'pos' : 'mut'}
                        style={{ fontSize: 12, alignSelf: 'center' }}>{note.text}</span>}
         <div className="spacer" />

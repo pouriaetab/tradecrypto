@@ -1356,6 +1356,17 @@ def risk_status(mode: str = "paper"):
     return ok(_clean(guards.status(mode)))
 
 
+@router.post("/risk/daily-limit")
+def risk_daily_limit(payload: dict = Body(default={})):
+    """Change the day's stop without editing a file or restarting anything."""
+    raw = payload.get("pct", None)
+    try:
+        res = guards.set_daily_loss_pct(None if raw in (None, "", "default") else float(raw))
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(400, str(exc))
+    return ok(_clean({**res, "status": guards.status(payload.get("mode") or "paper")}))
+
+
 @router.post("/risk/kill")
 def risk_kill(payload: dict = Body(default={})):
     guards.engage_kill_switch(payload.get("reason", "engaged from dashboard"))

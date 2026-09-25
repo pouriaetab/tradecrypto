@@ -440,6 +440,7 @@ export const api = {
   equity: (mode = 'paper') => req(`/equity?mode=${mode}`),
   events: (limit = 100) => req(`/events?limit=${limit}`),
 
+  riskDailyLimit: (pct) => req('/risk/daily-limit', { method: 'POST', body: { pct } }),
   riskStatus: (mode = 'paper') => req(`/risk/status?mode=${mode}`),
   kill: (reason) => req('/risk/kill', { method: 'POST', body: { reason } }),
   release: () => req('/risk/release', { method: 'POST', body: {} }),

@@ -1,5 +1,20 @@
 # TradeCrypto
 
+> ## ⚠️ Read [DISCLAIMER.md](DISCLAIMER.md) first
+>
+> Personal research project, shared **as-is**, under the MIT License — **no
+> warranty, and the author is not liable for anything, including trading
+> losses.** It is **not financial advice**.
+>
+> **It loses money.** That is the measured result, not modesty: a Robinhood
+> round trip costs about 1.9% and most of these coins move 2–3% in a day, so the
+> cost eats the edge. Over a month of real replayed prices the book is down.
+>
+> It trades **pretend money by default**. Making it use real money takes three
+> deliberate acts by whoever runs it, and no button in the app can do them. If
+> you take those steps, the risk and the outcome are yours.
+
+
 A crypto trading bot with a web page that shows every decision it makes and why.
 Runs on **fake money against real live prices** — nothing is at risk.
 
