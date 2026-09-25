@@ -35,7 +35,7 @@ in an interview it is usually the part that gets remembered. See
 ### The system under discussion
 
 An automated crypto trading system and its transparency dashboard: 116 Python
-modules, 58 test files, 541 test functions, 591 collected test cases, ~50
+modules, 59 test files, 548 test functions, ~50
 instruments on a 15-second poll. The system's headline result is negative — the
 strategy does not clear its own transaction-cost floor — which is why the
 measurement apparatus is the interesting part rather than the strategy.
@@ -87,9 +87,9 @@ different classes of defect:
 
 | Category | Count | What it is |
 |---|---|---|
-| Behavioural unit and integration tests | ~38 files | Ordinary specification-based tests over functions and modules |
+| Behavioural unit and integration tests | ~39 files | Ordinary specification-based tests over functions and modules |
 | **Architectural fitness functions** | **20 files** | Tests that read the *source* with `inspect.getsource` and assert structural properties |
-| Data-driven (`parametrize`) | 7 files | One test body, many input classes — equivalence partitioning made literal |
+| Data-driven (`parametrize`) | 8 files | One test body, many input classes — equivalence partitioning made literal |
 | Isolation (`monkeypatch`) | 22 files | Dependencies replaced so the unit under test is genuinely alone |
 | Filesystem-isolated (`tmp_path`) | 5 files | Anything touching the database or vault, on a private copy |
 | Process-level (`subprocess`) | 4 files | The install, the clone, the day boundary — tested as a user meets them |
@@ -125,7 +125,15 @@ bare word `shuffle` and failed on the module's own sentence explaining why it
 does not shuffle. **A test that fires on its subject's documentation is noise**,
 and stripping docstrings and comments before matching is the fix.
 
-Boundary-value analysis, from the same file — the control entrant:
+Boundary-value analysis appears twice. `test_daily_limit_bounds.py` is the
+purpose-built case: the operator-settable daily loss limit is the only risk
+control here that can be moved while the system runs, so its partition edges
+(0.5% and 50%), the values just outside them, and the two degenerate values
+(0% halts on the first cent, 1000% is no cap) are each a case. The read path is
+covered as well as the write path, because a bound enforced only on input is one
+hand-edited row away from not existing.
+
+A second instance, from the model arena — the control entrant:
 
 ```python
 def test_the_control_alone_cannot_be_a_champion(monkeypatch):
@@ -406,7 +414,7 @@ factor of five.
 | Control | Value | Where the number came from |
 |---|---|---|
 | Book drawdown budget | 10% of equity, less today's realised | Replaced a fixed $60 cap that refused 32 of 43 entries |
-| Daily loss limit, operator-settable | 0.5%–50% of stake | Bounds, not a value: 0% halts on the first cent; too large is not a stop |
+| Daily loss limit, operator-settable | 0.5%–50% of stake | Bounds, not a value: 0% halts on the first cent; too large is not a stop. Enforced on read *and* write — `test_daily_limit_bounds.py` |
 | Regime size multiplier | capped ×1.5 / ×0.5 | A router that can size to zero or to the moon is not a router |
 | Per-coin cost hurdle | per-instrument, not a global 240 bps | BTC's own round trip is nearer 80 bps; the global prior rejected viable trades |
 | Minimum trades before the lab acts | `MIN_TRADES = 15` | Below this it records but does not act |

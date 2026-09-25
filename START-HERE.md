@@ -1,23 +1,20 @@
 # Start here
 
-> ## ⚠️ Read [DISCLAIMER.md](DISCLAIMER.md) first
+> **A research project, not a product.** This is an engineering demonstration
+> built on free public crypto data. The full write-up is in
+> [README.md](README.md); scope and terms are in [DISCLAIMER.md](DISCLAIMER.md).
 >
-> Personal research project, shared **as-is**, under the MIT License — **no
-> warranty, and the author is not liable for anything, including trading
-> losses.** It is **not financial advice**.
+> It **cannot place an order** — the broker integration was removed before
+> publication. It watches real live prices and decides what it *would* do.
 >
-> **It loses money.** That is the measured result, not modesty: a Robinhood
-> round trip costs about 1.9% and most of these coins move 2–3% in a day, so the
-> cost eats the edge. Over a month of real replayed prices the book is down.
->
-> It trades **pretend money by default**. Making it use real money takes three
-> deliberate acts by whoever runs it, and no button in the app can do them. If
-> you take those steps, the risk and the outcome are yours.
+> The strategy does not clear its own cost floor: a round trip costs about 1.9%
+> while these coins typically move 2–3% in a day. That is the finding, and the
+> app is built to show it to you rather than hide it.
 
 
 This is a crypto trading bot with a web page that shows you every decision it
-makes and why. **It does not touch real money.** It watches real live prices and
-pretends to trade, so you can see whether it would have worked.
+makes and why. **It cannot place an order.** It watches real live prices and
+decides what it would do, so you can see whether it would have worked.
 
 **You need about 5 minutes. Nothing costs anything. No account of any kind is
 needed — not Robinhood, not Coinbase, nothing.**

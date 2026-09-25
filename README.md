@@ -27,7 +27,7 @@ telemetry, manufacturing yield, or claims data with the nouns changed
 demonstrated is:
 
 - a **test suite** derived from real failures rather than from imagined ones —
-  58 files, 541 test functions, each traceable to the incident that caused it
+  59 files, 548 test functions, each traceable to the incident that caused it
 - **quality assurance and control at the data layer** — fifteen invariants that
   ask whether the running system's output is true of the world, not whether the
   code compiles
