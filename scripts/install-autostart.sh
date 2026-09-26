@@ -135,7 +135,7 @@ if grep -q "Operation not permitted" "$PROJECT/logs/launchd.err.log" 2>/dev/null
   echo
   echo "  TWO WAYS OUT — the first is the safer one:"
   echo
-  echo "   1. MOVE the project somewhere unprotected, e.g. ~/apps/tradecrypto,"
+  echo "   1. MOVE the project somewhere unprotected, e.g. ~/apps/glassbox,"
   echo "      then re-run this installer. Nothing in the app depends on its path."
   echo
   echo "   2. Grant /bin/bash Full Disk Access:"
@@ -188,7 +188,7 @@ case "$PROJECT" in
     echo "  System Settings > Privacy & Security > Full Disk Access > '+'"
     echo "  then Cmd-Shift-G, type  /bin/bash , add it, switch it on."
     echo
-    echo "  Or move the project somewhere unprotected (e.g. ~/apps/tradecrypto)"
+    echo "  Or move the project somewhere unprotected (e.g. ~/apps/glassbox)"
     echo "  and re-run this installer — nothing in the app depends on the path."
     echo
     ;;

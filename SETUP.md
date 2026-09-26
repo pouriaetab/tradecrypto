@@ -11,7 +11,7 @@ Everything below assumes macOS or Linux, Python 3.11+ and Node 18+.
 ## 1. Run it
 
 ```bash
-cd tradecrypto
+cd glassbox
 cp .env.example .env
 ./run.sh
 ```
@@ -30,7 +30,7 @@ If you already have Glassbox running, the test copy will fight it for ports
 and for its database. Give the copy its own:
 
 ```bash
-cd ~/tradecrypto-test
+cd ~/glassbox-test
 cp .env.example .env
 cat >> .env <<'EOT'
 BACKEND_PORT=8106

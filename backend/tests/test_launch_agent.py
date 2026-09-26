@@ -32,7 +32,7 @@ def _render(program_args: str) -> bytes:
     body = m.group(1)
     subs = {
         "$LABEL": "com.tradecrypto.app",
-        "$PROJECT": "/Users/you/projects/tradecrypto",
+        "$PROJECT": "/Users/you/projects/glassbox",
         "$HOME": "/Users/you",
         "$PROGRAM_ARGS": program_args,
     }
@@ -42,7 +42,7 @@ def _render(program_args: str) -> bytes:
 
 
 PLAIN = ("    <string>/bin/bash</string>\n"
-         "    <string>/Users/you/projects/tradecrypto/scripts/supervise.sh</string>")
+         "    <string>/Users/you/projects/glassbox/scripts/supervise.sh</string>")
 AWAKE = ("    <string>/usr/bin/caffeinate</string>\n    <string>-s</string>\n" + PLAIN)
 
 

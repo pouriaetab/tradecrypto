@@ -28,7 +28,7 @@ export default class ErrorBoundary extends React.Component {
     this.setState({ info })
     // Log it where it can actually be read later.
     try {
-      console.error('[tradecrypto] page crashed:', err, info?.componentStack)
+      console.error('[glassbox] page crashed:', err, info?.componentStack)
       fetch('/api/v1/ui-error', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

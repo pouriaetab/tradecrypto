@@ -64,7 +64,7 @@ git commit -m "Glassbox"
 ## Step 4 — Create the repository on GitHub
 
 1. Go to **https://github.com/new**
-2. **Repository name:** `tradecrypto`
+2. **Repository name:** `glassbox`
 3. **Description:** leave blank
 4. Choose **Private** ← important
 5. Do **not** tick "Add a README", "Add .gitignore" or "Choose a license" — all
@@ -80,7 +80,7 @@ GitHub then shows a page with commands. Ignore it and use the next step.
 Replace `YOURNAME` with your GitHub username:
 
 ```
-git remote add origin https://github.com/YOURNAME/tradecrypto.git
+git remote add origin https://github.com/YOURNAME/glassbox.git
 git push -u origin main
 ```
 
@@ -111,7 +111,7 @@ minutes.
 Tell him to read **START-HERE.md** in the repository, and give him this address:
 
 ```
-https://github.com/YOURNAME/tradecrypto
+https://github.com/YOURNAME/glassbox
 ```
 
 ---

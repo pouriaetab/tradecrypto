@@ -281,7 +281,7 @@ applied as one. This preserves the property that the acting path is the one that
 was verified, the same separation Simplex [10] and F3269 [11] rely on.
 
 ```
-tradecrypto/
+glassbox/
 ├── backend/app/
 │   ├── strategy/        22 modules, the decision rules
 │   │   ├── time_budget.py      P(target reached | ratio, age, P&L),
@@ -304,11 +304,11 @@ tradecrypto/
 │   └── core/
 │       ├── liveness.py         has each safeguard ever actually FIRED?
 │       └── vault.py            append-only, hash-chained audit log
-├── backend/tests/       58 files · 541 tests
+├── backend/tests/       59 files · 548 tests
 └── frontend/src/        37 components, the interface
 ```
 
-**116 Python files / 34,029 lines · 541 tests / 7,910 lines · 37 UI components.**
+**116 Python files / 34,029 lines · 548 tests / 7,910 lines · 37 UI components.**
 
 ---
 
@@ -424,7 +424,7 @@ model is a first-class module rather than a constant.
 
 ## 8. Failure-driven testing
 
-Most of the 541 tests exist because something broke. Each encodes one incident:
+Most of the 548 tests exist because something broke. Each encodes one incident:
 symptom, root cause, and the check that now catches it. This is the practice [6]
 formalises as a readiness rubric and [7] explains the need for.
 
@@ -450,8 +450,8 @@ Python 3.11–3.14. Node optional: a built dashboard ships in the repository and
 the backend serves it when no toolchain is present.
 
 ```bash
-git clone https://github.com/pouriaetab/tradecrypto.git ~/tradecrypto
-cd ~/tradecrypto && bash run.sh
+git clone https://github.com/pouriaetab/glassbox.git ~/glassbox
+cd ~/glassbox && bash run.sh
 ```
 
 Prices come from public endpoints: no account, no API key, no credentials. On
@@ -459,7 +459,7 @@ first run it offers a demo, the real strategies replayed over real stored prices
 with the real cost model, so every view is populated before any live data exists.
 
 ```bash
-cd backend && .venv/bin/python -m pytest -q     # 541 tests
+cd backend && .venv/bin/python -m pytest -q     # 548 tests
 bash run.sh --doctor                            # environment diagnosis
 ```
 

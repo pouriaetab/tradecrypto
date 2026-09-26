@@ -9,7 +9,7 @@ When the owner changes something, you get it with **two lines**.
 Open Terminal and paste these, one at a time:
 
 ```
-cd ~/tradecrypto
+cd ~/glassbox
 git pull
 ```
 
@@ -43,7 +43,7 @@ that the update also changed. The safe fix, which keeps your settings and your
 data:
 
 ```
-cd ~/tradecrypto
+cd ~/glassbox
 git stash
 git pull
 ```
@@ -56,7 +56,7 @@ trading history is inside it.
 ## How to know an update is waiting
 
 ```
-cd ~/tradecrypto
+cd ~/glassbox
 git fetch
 git status
 ```

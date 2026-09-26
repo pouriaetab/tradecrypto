@@ -49,7 +49,7 @@ lines go.
 Copy this whole line, paste it into Terminal, press Enter:
 
 ```
-git clone https://github.com/pouriaetab/tradecrypto.git ~/tradecrypto
+git clone https://github.com/pouriaetab/glassbox.git ~/glassbox
 ```
 
 Three things may happen. All are normal:
@@ -70,7 +70,7 @@ correct and you do not need to find it. To see it anyway: in Finder, click
 Paste this one line and press Enter:
 
 ```
-cd ~/tradecrypto && bash run.sh
+cd ~/glassbox && bash run.sh
 ```
 
 The first time takes a few minutes while it downloads what it needs. Leave the
@@ -108,19 +108,19 @@ Click on the Terminal window and press `Ctrl + C`.
 Or, from any Terminal window:
 
 ```
-cd ~/tradecrypto && bash run.sh stop
+cd ~/glassbox && bash run.sh stop
 ```
 
 ## To start it again later
 
 ```
-cd ~/tradecrypto && bash run.sh
+cd ~/glassbox && bash run.sh
 ```
 
 ## To get the owner's latest changes
 
 ```
-cd ~/tradecrypto && git pull && bash run.sh
+cd ~/glassbox && git pull && bash run.sh
 ```
 
 Your own history is never touched by an update.
@@ -140,7 +140,7 @@ Your own history is never touched by an update.
 ### Your stake
 
 It assumes a pretend $500. To change it, open the file `.env` inside the
-`tradecrypto` folder with TextEdit, find `TC_ACCOUNT_EQUITY=500`, and put your
+`glassbox` folder with TextEdit, find `TC_ACCOUNT_EQUITY=500`, and put your
 own number. Stop and start the app afterwards.
 
 ---
@@ -150,7 +150,7 @@ own number. Stop and start the app afterwards.
 Try this first:
 
 ```
-cd ~/tradecrypto && bash run.sh stop && bash run.sh
+cd ~/glassbox && bash run.sh stop && bash run.sh
 ```
 
 If it prints a red line, that line says what to do. These messages are written
@@ -159,7 +159,7 @@ in plain English, not error codes.
 To see a full report of what is and isn't working:
 
 ```
-cd ~/tradecrypto && bash run.sh --doctor
+cd ~/glassbox && bash run.sh --doctor
 ```
 
 Send a screenshot of that. Or in the web page, click **Sources** then
@@ -173,7 +173,7 @@ Two ways. The first needs nothing installed.
 
 ### Way 1. At home, on the same wifi (easiest)
 
-1. Open the file `.env` inside the `tradecrypto` folder. Double-click it; if your
+1. Open the file `.env` inside the `glassbox` folder. Double-click it; if your
    Mac asks what to open it with, choose **TextEdit**.
 2. Find the line that says `TC_LAN=0` and change the `0` to a `1`, so it reads:
 
@@ -185,7 +185,7 @@ Two ways. The first needs nothing installed.
 4. In Terminal, stop and start the app:
 
    ```
-   cd ~/tradecrypto && bash run.sh stop && bash run.sh
+   cd ~/glassbox && bash run.sh stop && bash run.sh
    ```
 
 5. Near the end it prints something like:
@@ -229,7 +229,7 @@ This one needs one extra piece of software, so it is a bit more work.
 4. Restart the app:
 
    ```
-   cd ~/tradecrypto && bash run.sh stop && bash run.sh
+   cd ~/glassbox && bash run.sh stop && bash run.sh
    ```
 
 5. It prints an address ending in `.trycloudflare.com`. Open that on your phone.
