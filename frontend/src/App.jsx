@@ -242,7 +242,7 @@ function PhoneNav({ pages, page, setPage }) {
         <div className="phone-nav-sheet" onClick={() => setOpen(false)}>
           <div className="phone-nav-list" onClick={(e) => e.stopPropagation()}>
             <div className="phone-nav-head">
-              <b>TradeCrypto</b>
+              <b>Glassbox</b>
               <button onClick={() => setOpen(false)}>close</button>
             </div>
             <div className="phone-nav-grid">
@@ -297,7 +297,7 @@ export default function App() {
       <aside className="sidebar">
         <PhoneNav pages={order.filter((id) => byId[id]).map((id) => ({ id, label: byId[id].label }))}
                   page={page} setPage={setPage} />
-        <div className="brand">TradeCrypto<small>drag tabs to reorder</small></div>
+        <div className="brand">Glassbox<small>drag tabs to reorder</small></div>
         <nav className="nav">
           {order.map((id) => byId[id] && (
             <button key={id} className={`${page === id ? 'active' : ''} ${dragId === id ? 'dragging' : ''}`}

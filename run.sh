@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# TradeCrypto — unified entry point (control_deck RUN_SH_STANDARD)
+# Glassbox — unified entry point (control_deck RUN_SH_STANDARD)
 #
 # NOTE: bash, not zsh. An earlier version used the construct
 #     (cd frontend && VAR=x VAR2=y { cmd_a || cmd_b; }) &
@@ -10,7 +10,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
-PROJECT_NAME="TradeCrypto"
+PROJECT_NAME="Glassbox"
 # Remember whether the SHELL set these, before any default is applied. Without
 # this, "unset" and "8006" are indistinguishable two lines later and .env can
 # never be consulted -- which is exactly why BACKEND_PORT=8106 in .env was
@@ -179,7 +179,7 @@ fi
 # is broken" and "two supervisors are fighting over port 8006", and not being
 # able to see it cost a day.
 if [ "${1:-}" = "--doctor" ]; then
-  echo "== TradeCrypto doctor =="
+  echo "== Glassbox doctor =="
   echo "when:            $(date '+%F %T %Z')"
   echo "project:         $SCRIPT_DIR"
   echo
@@ -379,7 +379,7 @@ if command -v lsof >/dev/null 2>&1; then
   held="$(lsof -ti tcp:"$BACKEND_PORT" -sTCP:LISTEN 2>/dev/null | tr '\n' ' ' || true)"
   if [ -n "${held// /}" ]; then
     err "port $BACKEND_PORT is already in use by PID(s): $held"
-    err "Another TradeCrypto is running. Stop it before starting a second one:"
+    err "Another Glassbox is running. Stop it before starting a second one:"
     err "  kill $held"
     err "To see WHICH one — Control Deck's, a launchd agent's, or an orphan —"
     err "and who its parent is:"

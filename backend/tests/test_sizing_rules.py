@@ -83,7 +83,17 @@ def test_small_samples_never_produce_a_slope():
     assert "need" in prof["why"]
 
 
-def test_shares_stay_within_arithmetic_bounds():
+def test_shares_stay_within_arithmetic_bounds(writable_db):
+    """`writable_db` is not decoration. `share()` asks `signals_per_day()` how
+    often the strategy speaks, which opens the database. That call handles an
+    empty result (it returns 0.0), but it never gets the chance on a fresh clone:
+    `get_conn()` opens read-only with `immutable=1`, which refuses to create a
+    missing file, so the connection raises before any query runs.
+
+    Without the fixture this test passes only on a machine that already has a
+    database, which is the author's and nobody else's. Found on 2026-09-26 by
+    running the suite in a clone that had never been started.
+    """
     for c in (None, 1.0, 2.0, 12.0, 1e6):
         share, why = sizing.share("no_such_strategy", c, 0.45)
         assert sizing.SHARE_FLOOR <= share <= sizing.SHARE_CEIL, (c, share)

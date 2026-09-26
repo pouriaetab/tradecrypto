@@ -435,7 +435,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     lifespan=lifespan,
-    title="TradeCrypto",
+    title="Glassbox",
     version="0.1.0",
     description=(
         "A Robinhood crypto trading system built so that every number on screen "

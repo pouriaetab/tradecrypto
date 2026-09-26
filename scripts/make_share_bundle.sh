@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a clean copy of TradeCrypto to hand to someone else.
+# Build a clean copy of Glassbox to hand to someone else.
 #
 # What it leaves behind, deliberately:
 #   data/      every trade, position, signal and price bar this desk has taken

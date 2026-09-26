@@ -1,6 +1,6 @@
 {
-  "name": "TradeCrypto",
-  "short_name": "TradeCrypto",
+  "name": "Glassbox",
+  "short_name": "Glassbox",
   "description": "Robinhood crypto desk \u2014 what it traded, what it skipped, and why.",
   "scope": "/",
   "display": "standalone",

@@ -1,4 +1,4 @@
-# TradeCrypto — development context
+# Glassbox — development context
 
 ## Purpose
 Automated Robinhood crypto trading with a transparency-first dashboard. The design constraint
@@ -45,7 +45,7 @@ real time on a real day, and the numbers below are what actually happened.
 
 0. **Read the shared checklist before designing or changing anything.**
    `../webapp_blueprint/CHECKLIST.md` (mounted at `market/webapp_blueprint/`) is
-   100 rows of things that have already gone wrong across TradeForge, TradeCrypto,
+   100 rows of things that have already gone wrong across TradeForge, Glassbox,
    Trade Guard, Looper, trade_mirror, trade_genai and Control Deck. Sections 1, 2
    and 4 catch the most. This is not optional reading: on 2026-09-18 this project
    independently rediscovered two rules that were already written there —

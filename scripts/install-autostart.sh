@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install TradeCrypto as a macOS LaunchAgent so it starts at login and is
+# Install Glassbox as a macOS LaunchAgent so it starts at login and is
 # restarted automatically if it ever dies.
 #
 #   ./scripts/install-autostart.sh          install and start

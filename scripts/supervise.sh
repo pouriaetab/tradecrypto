@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Keep TradeCrypto running, restart it if it dies, and preserve the evidence.
+# Keep Glassbox running, restart it if it dies, and preserve the evidence.
 #
 # Two failures shaped this file:
 #
@@ -8,7 +8,7 @@
 #
 #   2. run.sh exited 0 after a failure (it had wrongly reported itself healthy
 #      by reading another instance's /health), this script read 0 as "deliberate
-#      shutdown", and TradeCrypto stayed dead all day. So exit 0 is no longer
+#      shutdown", and Glassbox stayed dead all day. So exit 0 is no longer
 #      trusted on its own: a stop is deliberate only if the operator asked for
 #      one, or the app ran long enough to have been genuinely up.
 #

@@ -25,7 +25,7 @@ brew install git
 ## Step 1 — Make this folder a repository
 
 ```
-cd /path/to/collab/tradecrypto
+cd /path/to/collab/glassbox
 git init -b main
 ```
 
@@ -56,7 +56,7 @@ staged. Nothing has left your machine yet, so it is fixable.
 ## Step 3 — Save the first version
 
 ```
-git commit -m "TradeCrypto"
+git commit -m "Glassbox"
 ```
 
 ---
@@ -121,7 +121,7 @@ https://github.com/YOURNAME/tradecrypto
 Every time you want him to have your latest version:
 
 ```
-cd /path/to/collab/tradecrypto
+cd /path/to/collab/glassbox
 git add -A
 git commit -m "what changed, in a few words"
 git push

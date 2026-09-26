@@ -37,7 +37,7 @@ def check(name, fn):
 
 def main() -> int:
     s = get_settings()
-    print(f"\nTradeCrypto self-test -- mode={s.execution_mode}, live_enabled={s.live_enabled}\n")
+    print(f"\nGlassbox self-test -- mode={s.execution_mode}, live_enabled={s.live_enabled}\n")
 
     check("database", lambda: f"initialised at {db.init_db()}")
     check("model cards", lambda: f"{len(registry.all_cards()) or (registry.bootstrap_cards() or len(registry.all_cards()))} registered")

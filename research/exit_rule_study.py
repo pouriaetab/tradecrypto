@@ -15,8 +15,9 @@ So: same entries, seven different exits, four years of hourly bars, split
 chronologically. The first 75% chooses; the last 25% is read once at the end.
 """
 import sqlite3, numpy as np, json, sys
+from pathlib import Path
 
-DB = "/sessions/rcw-01fdvhtvzjn4z3tjmf4yxsjd/mnt/tradecrypto/data/tradecrypto.sqlite"
+DB = Path(__file__).resolve().parent.parent / "data" / "tradecrypto.sqlite"
 ROUND_TRIP = 0.019182          # (1+s)/(1-s)-1 at 0.95% a side
 SIDE = 0.0095
 PUMP_BARS, PUMP_PCT = 4, 18.0  # pump_ride's entry, unchanged
@@ -96,5 +97,6 @@ for i, s in enumerate(syms):
         for name, rule in RULES.items():
             r[name] = run_exit(o,h,l,c,e,rule)
         rows.append(r)
-json.dump(rows, open("/sessions/rcw-01fdvhtvzjn4z3tjmf4yxsjd/exitlab/rows.json","w"))
+OUT = Path(__file__).resolve().parent / "exit_rule_study_rows.json"
+json.dump(rows, open(OUT, "w"))
 print(f"{len(rows)} pump entries across {len(syms)} coins")

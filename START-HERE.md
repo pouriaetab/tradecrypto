@@ -79,7 +79,7 @@ window alone until it stops printing.
 When it is ready, the last line will say something like:
 
 ```
-TradeCrypto up. Dashboard at http://127.0.0.1:8006
+Glassbox up. Dashboard at http://127.0.0.1:8006
 ```
 
 ---

@@ -1,4 +1,4 @@
-# TradeCrypto — setup
+# Glassbox — setup
 
 An automated crypto trading bot with a web app that shows every decision it
 makes. It runs in **paper mode** by default: real live prices, simulated fills,
@@ -26,7 +26,7 @@ That is the whole setup. **No accounts, no API keys, no credentials.**
 
 ### Running a second copy alongside an existing one
 
-If you already have TradeCrypto running, the test copy will fight it for ports
+If you already have Glassbox running, the test copy will fight it for ports
 and for its database. Give the copy its own:
 
 ```bash
